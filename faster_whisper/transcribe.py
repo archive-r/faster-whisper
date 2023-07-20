@@ -585,7 +585,6 @@ class WhisperModel:
                     continue
 
                 prompt_text_deque.append(text)
-
                 idx += 1
 
                 yield Segment(
