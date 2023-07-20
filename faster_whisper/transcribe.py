@@ -558,7 +558,7 @@ class WhisperModel:
                     and avg_logprob < options.log_prob_threshold * 1.5
                 ):
                     self.logger.info(
-                        "\033[94m average log probability is too low\n\033[0m"
+                        "\033[94mAverage log probability is too low\n\033[0m"
                         f"(alp: {avg_logprob:.2f} < {(options.log_prob_threshold * 1.5):.2f})\n"
                         f"{text}\n"
                         f"alp: {avg_logprob:.2f} nsp: {result.no_speech_prob:.2f} t: {temperature} cr: {compression_ratio:.2f}"
@@ -578,7 +578,7 @@ class WhisperModel:
                     prompt_reset_since = len(all_tokens)
                     continue
 
-                if text.strip() != prompt_text_deque[-1]:
+                if not prompt_text_deque or text.strip() != prompt_text_deque[-1]:
                     prompt_text_deque.append(text)
                     all_tokens.extend(tokens)
 
