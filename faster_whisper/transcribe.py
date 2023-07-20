@@ -581,7 +581,7 @@ class WhisperModel:
                     prompt_reset_since = len(all_tokens)
                     continue
 
-                prompt_text_deque.append(text)
+                prompt_text_deque.append(text.strip())
                 idx += 1
 
                 yield Segment(
