@@ -567,10 +567,7 @@ class WhisperModel:
                     prompt_reset_since = len(all_tokens)
                     continue
 
-                if not prompt_text_deque:
-                    all_tokens.extend(tokens)
-
-                elif text.strip() != prompt_text_deque[-1]:
+                if not prompt_text_deque or text.strip() != prompt_text_deque[-1]:
                     all_tokens.extend(tokens)
 
                 elif len(prompt_text_deque) == 3 and all(
