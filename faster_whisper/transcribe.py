@@ -555,11 +555,11 @@ class WhisperModel:
 
                 if (
                     options.log_prob_threshold is not None
-                    and avg_logprob < options.log_prob_threshold * 1.5
+                    and avg_logprob < options.log_prob_threshold
                 ):
                     self.logger.info(
                         "\033[94mAverage log probability is too low\n\033[0m"
-                        f"(alp: {avg_logprob:.2f} < {(options.log_prob_threshold * 1.5):.2f})\n"
+                        f"(alp: {avg_logprob:.2f} < {(options.log_prob_threshold):.2f})\n"
                         f"{text}\n"
                         f"alp: {avg_logprob:.2f} nsp: {result.no_speech_prob:.2f} t: {temperature} cr: {compression_ratio:.2f}"
                     )
