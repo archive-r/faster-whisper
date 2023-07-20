@@ -571,7 +571,7 @@ class WhisperModel:
                     all_tokens.extend(tokens)
 
                 elif len(prompt_text_deque) == 3 and all(
-                    [text.strip() == i.strip() for i in prompt_text_deque]
+                    [text.strip() == i for i in prompt_text_deque]
                 ):
                     self.logger.info(
                         "\033[91mDuplicate text detected\n\033[0m"
