@@ -541,11 +541,11 @@ class WhisperModel:
 
                 if (
                     options.compression_ratio_threshold is not None
-                    and compression_ratio > options.compression_ratio_threshold
+                    and compression_ratio > options.compression_ratio_threshold * 1.2
                 ):
                     self.logger.info(
                         "\033[93mCompression ratio is too high\n\033[0m"
-                        f"(cr: {compression_ratio:.2f} > {(options.compression_ratio_threshold):.2f})\n"
+                        f"(cr: {compression_ratio:.2f} > {(options.compression_ratio_threshold * 1.2):.2f})\n"
                         f"{text}\n"
                         f"alp: {avg_logprob:.2f} nsp: {result.no_speech_prob:.2f} t: {temperature}, cr: {compression_ratio:.2f}s"
                     )
@@ -555,11 +555,11 @@ class WhisperModel:
 
                 if (
                     options.log_prob_threshold is not None
-                    and avg_logprob < options.log_prob_threshold
+                    and avg_logprob < options.log_prob_threshold * 1.2
                 ):
                     self.logger.info(
                         "\033[94mAverage log probability is too low\n\033[0m"
-                        f"(alp: {avg_logprob:.2f} < {(options.log_prob_threshold):.2f})\n"
+                        f"(alp: {avg_logprob:.2f} < {(options.log_prob_threshold * 1.2):.2f})\n"
                         f"{text}\n"
                         f"alp: {avg_logprob:.2f} nsp: {result.no_speech_prob:.2f} t: {temperature} cr: {compression_ratio:.2f}"
                     )
