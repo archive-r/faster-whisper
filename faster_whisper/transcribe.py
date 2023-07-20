@@ -567,20 +567,24 @@ class WhisperModel:
                     prompt_reset_since = len(all_tokens)
                     continue
 
-                if len(prompt_text_deque) == 3 and all(
+                if not prompt_text_deque:
+                    all_tokens.extend(tokens)
+                    prompt_text_deque.append(text)
+
+                elif text.strip() != prompt_text_deque[-1]:
+                    all_tokens.extend(tokens)
+                    prompt_text_deque.append(text)
+
+                elif len(prompt_text_deque) == 3 and all(
                     [text.strip() == i.strip() for i in prompt_text_deque]
                 ):
                     self.logger.info(
-                        "\033[91mDuplicate prompt\n\033[0m"
+                        "\033[91mDuplicate text detected\n\033[0m"
                         f"{text}\n"
                         f"alp: {avg_logprob:.2f} nsp: {result.no_speech_prob:.2f} t: {temperature} cr: {compression_ratio:.2f}"
                     )
                     prompt_reset_since = len(all_tokens)
                     continue
-
-                if not prompt_text_deque or text.strip() != prompt_text_deque[-1]:
-                    prompt_text_deque.append(text)
-                    all_tokens.extend(tokens)
 
                 idx += 1
 
