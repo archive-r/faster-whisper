@@ -624,7 +624,6 @@ class WhisperModel:
     ) -> Tuple[ctranslate2.models.WhisperGenerationResult, float, float, float]:
         decode_result = None
         all_results = []
-        below_cr_threshold_results = []
 
         max_initial_timestamp_index = int(
             round(options.max_initial_timestamp / self.time_precision)
@@ -677,18 +676,18 @@ class WhisperModel:
 
             needs_fallback = False
 
-            if options.compression_ratio_threshold is not None:
-                if compression_ratio > options.compression_ratio_threshold:
-                    needs_fallback = True  # too repetitive
+            if (
+                options.compression_ratio_threshold is not None
+                and compression_ratio > options.compression_ratio_threshold
+            ):
+                needs_fallback = True  # too repetitive
 
-                    self.logger.debug(
-                        "Compression ratio threshold is not met with temperature %.1f (%f > %f)",
-                        temperature,
-                        compression_ratio,
-                        options.compression_ratio_threshold,
-                    )
-                else:
-                    below_cr_threshold_results.append(decode_result)
+                self.logger.debug(
+                    "Compression ratio threshold is not met with temperature %.1f (%f > %f)",
+                    temperature,
+                    compression_ratio,
+                    options.compression_ratio_threshold,
+                )
 
             if (
                 options.log_prob_threshold is not None
@@ -713,9 +712,21 @@ class WhisperModel:
                 break
         else:
             # all failed, select the result with the highest average log probability
-            decode_result = max(
-                below_cr_threshold_results or all_results, key=lambda x: x[1]
-            )
+            rate = 1
+            log_prob_threshold = options.log_prob_threshold
+            compression_ratio_threshold = options.compression_ratio_threshold
+            decode_result = None
+            while not decode_result:
+                threshold_results = []
+                for result in all_results:
+                    if (
+                        result[1] > log_prob_threshold * rate
+                        and result[3] <= compression_ratio_threshold * rate
+                    ):
+                        threshold_results.append(result)
+
+                decode_result = max(threshold_results, key=lambda x: x[1])
+                rate += 0.2
 
         return decode_result
 
