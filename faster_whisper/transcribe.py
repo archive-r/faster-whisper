@@ -716,7 +716,7 @@ class WhisperModel:
             log_prob_threshold = options.log_prob_threshold
             compression_ratio_threshold = options.compression_ratio_threshold
             decode_result = None
-            while not decode_result:
+            while True:
                 threshold_results = []
                 for result in all_results:
                     if (
@@ -730,6 +730,7 @@ class WhisperModel:
                     continue
 
                 decode_result = max(threshold_results, key=lambda x: x[1])
+                break
 
         return decode_result
 
