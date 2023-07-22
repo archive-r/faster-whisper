@@ -675,7 +675,7 @@ class WhisperModel:
             )
             all_results.append(decode_result)
 
-            needs_fallback = False
+            needs_fallback = True
 
             if options.compression_ratio_threshold is not None:
                 if compression_ratio > options.compression_ratio_threshold:
