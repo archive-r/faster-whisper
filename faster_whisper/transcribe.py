@@ -725,8 +725,11 @@ class WhisperModel:
                     ):
                         threshold_results.append(result)
 
+                if not threshold_results:
+                    rate += 0.2
+                    continue
+
                 decode_result = max(threshold_results, key=lambda x: x[1])
-                rate += 0.2
 
         return decode_result
 
