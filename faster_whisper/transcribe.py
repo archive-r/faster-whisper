@@ -404,12 +404,35 @@ class WhisperModel:
                 compression_ratio,
             ) = self.generate_with_fallback(encoder_output, prompt, tokenizer, options)
 
+            if not options.no_speech_threshold is not None:
+                # no voice activity check
+                should_skip = result.no_speech_prob > options.no_speech_threshold
+
+                if (
+                    options.log_prob_threshold is not None
+                    and avg_logprob > options.log_prob_threshold
+                ):
+                    # don't skip if the logprob is high enough, despite the no_speech_prob
+                    should_skip = False
+
+                if should_skip:
+                    self.logger.debug(
+                        "No speech threshold is met (%f > %f)",
+                        result.no_speech_prob,
+                        options.no_speech_threshold,
+                    )
+
+                    # fast-forward to the next segment boundary
+                    seek += segment_size
+                    continue
+
+            tokens = result.sequences_ids[0]
+
             # low avg_logprob check
             if (
                 options.log_prob_threshold is not None
                 and avg_logprob < options.log_prob_threshold * 1.5
             ):
-                tokens = result.sequences_ids[0]
                 text = tokenizer.decode(tokens)
 
                 info_message = (
@@ -437,7 +460,6 @@ class WhisperModel:
                 options.compression_ratio_threshold is not None
                 and compression_ratio > options.compression_ratio_threshold * 1.2
             ):
-                tokens = result.sequences_ids[0]
                 text = tokenizer.decode(tokens)
 
                 info_message = (
@@ -458,30 +480,6 @@ class WhisperModel:
 
                 seek += segment_size
                 continue
-
-            if not options.no_speech_threshold is not None:
-                # no voice activity check
-                should_skip = result.no_speech_prob > options.no_speech_threshold
-
-                if (
-                    options.log_prob_threshold is not None
-                    and avg_logprob > options.log_prob_threshold
-                ):
-                    # don't skip if the logprob is high enough, despite the no_speech_prob
-                    should_skip = False
-
-                if should_skip:
-                    self.logger.debug(
-                        "No speech threshold is met (%f > %f)",
-                        result.no_speech_prob,
-                        options.no_speech_threshold,
-                    )
-
-                    # fast-forward to the next segment boundary
-                    seek += segment_size
-                    continue
-
-            tokens = result.sequences_ids[0]
 
             previous_seek = seek
             current_segments = []
