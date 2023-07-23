@@ -530,54 +530,54 @@ class WhisperModel:
                     if seek_shift > 0:
                         seek = previous_seek + seek_shift
 
+            # # low avg_logprob check
+            # if (
+            #     options.log_prob_threshold is not None
+            #     and avg_logprob < options.log_prob_threshold * 2.0
+            # ):
+            #     text = tokenizer.decode(result.sequences_ids[0])
+
+            #     info_message = (
+            #         "\033[94mAverage log probability is too low\n\033[0m"
+            #         f"(alp: {avg_logprob:.2f} < {(options.log_prob_threshold * 2.0):.2f})\n"
+            #         f"{text}\n"
+            #         f"alp: {avg_logprob:.2f} nsp: {result.no_speech_prob:.2f} t: {temperature} cr: {compression_ratio:.2f}"
+            #         "\n\n"
+            #     )
+
+            #     self.logger.info(info_message)
+
+            #     if not options.condition_on_previous_text or temperature > 0.5:
+            #         prompt_reset_since = len(all_tokens)
+
+            #     continue
+
+            # # high compression ratio check
+            # if (
+            #     options.compression_ratio_threshold is not None
+            #     and compression_ratio > options.compression_ratio_threshold * 1.2
+            # ):
+            #     text = tokenizer.decode(result.sequences_ids[0])
+
+            #     info_message = (
+            #         "\033[93mCompression ratio is too high\n\033[0m"
+            #         f"(cr: {compression_ratio:.2f} > {(options.compression_ratio_threshold * 1.2):.2f})\n"
+            #         f"{text}\n"
+            #         f"alp: {avg_logprob:.2f} nsp: {result.no_speech_prob:.2f} t: {temperature}, cr: {compression_ratio:.2f}s"
+            #         "\n\n"
+            #     )
+            #     self.logger.info(info_message)
+
+            #     if not options.condition_on_previous_text or temperature > 0.5:
+            #         prompt_reset_since = len(all_tokens)
+
+            #     continue
+
             encoder_output = None
 
             for segment in current_segments:
                 tokens = segment["tokens"]
                 text = tokenizer.decode(tokens)
-
-                # low avg_logprob check
-                if (
-                    options.log_prob_threshold is not None
-                    and avg_logprob < options.log_prob_threshold * 2.0
-                ):
-                    text = tokenizer.decode(result.sequences_ids[0])
-
-                    info_message = (
-                        "\033[94mAverage log probability is too low\n\033[0m"
-                        f"(alp: {avg_logprob:.2f} < {(options.log_prob_threshold * 2.0):.2f})\n"
-                        f"{text}\n"
-                        f"alp: {avg_logprob:.2f} nsp: {result.no_speech_prob:.2f} t: {temperature} cr: {compression_ratio:.2f}"
-                        "\n\n"
-                    )
-
-                    self.logger.info(info_message)
-
-                    if not options.condition_on_previous_text or temperature > 0.5:
-                        prompt_reset_since = len(all_tokens)
-
-                    continue
-
-                # high compression ratio check
-                if (
-                    options.compression_ratio_threshold is not None
-                    and compression_ratio > options.compression_ratio_threshold * 1.2
-                ):
-                    text = tokenizer.decode(result.sequences_ids[0])
-
-                    info_message = (
-                        "\033[93mCompression ratio is too high\n\033[0m"
-                        f"(cr: {compression_ratio:.2f} > {(options.compression_ratio_threshold * 1.2):.2f})\n"
-                        f"{text}\n"
-                        f"alp: {avg_logprob:.2f} nsp: {result.no_speech_prob:.2f} t: {temperature}, cr: {compression_ratio:.2f}s"
-                        "\n\n"
-                    )
-                    self.logger.info(info_message)
-
-                    if not options.condition_on_previous_text or temperature > 0.5:
-                        prompt_reset_since = len(all_tokens)
-
-                    continue
 
                 if segment["start"] == segment["end"] or not text.strip():
                     continue
