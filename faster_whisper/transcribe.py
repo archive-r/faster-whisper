@@ -419,6 +419,9 @@ class WhisperModel:
                     f"alp: {avg_logprob:.2f} nsp: {result.no_speech_prob:.2f} t: {temperature} cr: {compression_ratio:.2f}"
                 )
 
+                if not options.condition_on_previous_text or temperature > 0.5:
+                    prompt_reset_since = len(all_tokens)
+
                 # fast-forward to the next segment boundary
                 seek += segment_size
                 continue
@@ -437,6 +440,9 @@ class WhisperModel:
                     f"{text}\n"
                     f"alp: {avg_logprob:.2f} nsp: {result.no_speech_prob:.2f} t: {temperature}, cr: {compression_ratio:.2f}s"
                 )
+
+                if not options.condition_on_previous_text or temperature > 0.5:
+                    prompt_reset_since = len(all_tokens)
 
                 # fast-forward to the next segment boundary
                 seek += segment_size
