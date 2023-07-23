@@ -404,6 +404,28 @@ class WhisperModel:
                 compression_ratio,
             ) = self.generate_with_fallback(encoder_output, prompt, tokenizer, options)
 
+            if not options.no_speech_threshold is not None:
+                # no voice activity check
+                should_skip = result.no_speech_prob > options.no_speech_threshold
+
+                if (
+                    options.log_prob_threshold is not None
+                    and avg_logprob >= options.log_prob_threshold
+                ):
+                    # don't skip if the logprob is high enough, despite the no_speech_prob
+                    should_skip = False
+
+                if should_skip:
+                    self.logger.debug(
+                        "No speech threshold is met (%f > %f)",
+                        result.no_speech_prob,
+                        options.no_speech_threshold,
+                    )
+
+                    # fast-forward to the next segment boundary
+                    seek += segment_size
+                    continue
+
             tokens = result.sequences_ids[0]
 
             previous_seek = seek
@@ -509,28 +531,6 @@ class WhisperModel:
                         seek = previous_seek + seek_shift
 
             encoder_output = None
-
-            if not options.no_speech_threshold is not None:
-                # no voice activity check
-                should_skip = result.no_speech_prob > options.no_speech_threshold
-
-                if (
-                    options.log_prob_threshold is not None
-                    and avg_logprob >= options.log_prob_threshold
-                ):
-                    # don't skip if the logprob is high enough, despite the no_speech_prob
-                    should_skip = False
-
-                if should_skip:
-                    self.logger.debug(
-                        "No speech threshold is met (%f > %f)",
-                        result.no_speech_prob,
-                        options.no_speech_threshold,
-                    )
-
-                    # # fast-forward to the next segment boundary
-                    # seek += segment_size
-                    continue
 
             # low avg_logprob check
             if (
