@@ -404,7 +404,41 @@ class WhisperModel:
                 compression_ratio,
             ) = self.generate_with_fallback(encoder_output, prompt, tokenizer, options)
 
-            if options.no_speech_threshold is not None:
+            should_skip = False
+
+            # low avg_logprob check
+            if (
+                options.log_prob_threshold is not None
+                and avg_logprob < options.log_prob_threshold * 1.5
+            ):
+                self.logger.info(
+                    "\033[94mAverage log probability is too low\n\033[0m"
+                    f"(alp: {avg_logprob:.2f} < {(options.log_prob_threshold * 1.5):.2f})\n"
+                    f"{text}\n"
+                    f"alp: {avg_logprob:.2f} nsp: {result.no_speech_prob:.2f} t: {temperature} cr: {compression_ratio:.2f}"
+                )
+
+                # fast-forward to the next segment boundary
+                seek += segment_size
+                continue
+
+            # high compression ratio check
+            if (
+                options.compression_ratio_threshold is not None
+                and compression_ratio > options.compression_ratio_threshold * 1.2
+            ):
+                self.logger.info(
+                    "\033[93mCompression ratio is too high\n\033[0m"
+                    f"(cr: {compression_ratio:.2f} > {(options.compression_ratio_threshold * 1.2):.2f})\n"
+                    f"{text}\n"
+                    f"alp: {avg_logprob:.2f} nsp: {result.no_speech_prob:.2f} t: {temperature}, cr: {compression_ratio:.2f}s"
+                )
+
+                # fast-forward to the next segment boundary
+                seek += segment_size
+                continue
+
+            if not options.no_speech_threshold is not None:
                 # no voice activity check
                 should_skip = result.no_speech_prob > options.no_speech_threshold
 
@@ -539,34 +573,6 @@ class WhisperModel:
                 if segment["start"] == segment["end"] or not text.strip():
                     continue
 
-                if (
-                    options.compression_ratio_threshold is not None
-                    and compression_ratio > options.compression_ratio_threshold * 1.5
-                ):
-                    self.logger.info(
-                        "\033[93mCompression ratio is too high\n\033[0m"
-                        f"(cr: {compression_ratio:.2f} > {(options.compression_ratio_threshold * 1.5):.2f})\n"
-                        f"{text}\n"
-                        f"alp: {avg_logprob:.2f} nsp: {result.no_speech_prob:.2f} t: {temperature}, cr: {compression_ratio:.2f}s"
-                    )
-
-                    prompt_reset_since = len(all_tokens)
-                    continue
-
-                if (
-                    options.log_prob_threshold is not None
-                    and avg_logprob < options.log_prob_threshold * 1.5
-                ):
-                    self.logger.info(
-                        "\033[94mAverage log probability is too low\n\033[0m"
-                        f"(alp: {avg_logprob:.2f} < {(options.log_prob_threshold * 1.5):.2f})\n"
-                        f"{text}\n"
-                        f"alp: {avg_logprob:.2f} nsp: {result.no_speech_prob:.2f} t: {temperature} cr: {compression_ratio:.2f}"
-                    )
-
-                    prompt_reset_since = len(all_tokens)
-                    continue
-
                 if not prompt_text_deque or text.strip() != prompt_text_deque[-1]:
                     all_tokens.extend(tokens)
 
@@ -578,7 +584,6 @@ class WhisperModel:
                         f"{text}\n"
                         f"alp: {avg_logprob:.2f} nsp: {result.no_speech_prob:.2f} t: {temperature} cr: {compression_ratio:.2f}"
                     )
-                    prompt_reset_since = len(all_tokens)
                     continue
 
                 prompt_text_deque.append(text.strip())
@@ -712,25 +717,29 @@ class WhisperModel:
                 break
         else:
             # all failed, select the result with the highest average log probability
-            rate = 1
-            log_prob_threshold = options.log_prob_threshold
-            compression_ratio_threshold = options.compression_ratio_threshold
-            decode_result = None
-            while True:
-                threshold_results = []
-                for result in all_results:
-                    if (
-                        result[1] > log_prob_threshold * rate
+            if (
+                log_prob_threshold is not None
+                and compression_ratio_threshold is not None
+            ):
+                log_prob_threshold = options.log_prob_threshold
+                compression_ratio_threshold = options.compression_ratio_threshold
+
+                decode_result = None
+                rate = 1
+
+                while True:
+                    threshold_results = [
+                        result
+                        for result in all_results
+                        if result[1] >= log_prob_threshold * rate
                         and result[3] <= compression_ratio_threshold * rate
-                    ):
-                        threshold_results.append(result)
+                    ]
 
-                if not threshold_results:
+                    if threshold_results:
+                        decode_result = max(threshold_results, key=lambda x: x[1])
+                        break
+
                     rate += 0.2
-                    continue
-
-                decode_result = max(threshold_results, key=lambda x: x[1])
-                break
 
         return decode_result
 
