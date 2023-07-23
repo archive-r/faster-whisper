@@ -757,6 +757,10 @@ class WhisperModel:
                         break
 
                     rate += 0.1
+
+                    if rate > 1:
+                        decode_result = max(all_results, key=lambda x: x[1])
+                        break
             else:
                 decode_result = max(all_results, key=lambda x: x[1])
 
