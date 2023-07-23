@@ -537,7 +537,7 @@ class WhisperModel:
                 options.log_prob_threshold is not None
                 and avg_logprob < options.log_prob_threshold * 2.0
             ):
-                text = tokenizer.decode(tokens)
+                text = tokenizer.decode(result.sequences_ids[0])
 
                 info_message = (
                     "\033[94mAverage log probability is too low\n\033[0m"
@@ -563,7 +563,7 @@ class WhisperModel:
                 options.compression_ratio_threshold is not None
                 and compression_ratio > options.compression_ratio_threshold * 1.2
             ):
-                text = tokenizer.decode(tokens)
+                text = tokenizer.decode(result.sequences_ids[0])
 
                 info_message = (
                     "\033[93mCompression ratio is too high\n\033[0m"
