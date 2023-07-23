@@ -404,15 +404,14 @@ class WhisperModel:
                 compression_ratio,
             ) = self.generate_with_fallback(encoder_output, prompt, tokenizer, options)
 
-            should_skip = False
-            tokens = result.sequences_ids[0]
-            text = tokenizer.decode(tokens)
-
             # low avg_logprob check
             if (
                 options.log_prob_threshold is not None
                 and avg_logprob < options.log_prob_threshold * 1.5
             ):
+                tokens = result.sequences_ids[0]
+                text = tokenizer.decode(tokens)
+
                 self.logger.info(
                     "\033[94mAverage log probability is too low\n\033[0m"
                     f"(alp: {avg_logprob:.2f} < {(options.log_prob_threshold * 1.5):.2f})\n"
@@ -429,6 +428,9 @@ class WhisperModel:
                 options.compression_ratio_threshold is not None
                 and compression_ratio > options.compression_ratio_threshold * 1.2
             ):
+                tokens = result.sequences_ids[0]
+                text = tokenizer.decode(tokens)
+
                 self.logger.info(
                     "\033[93mCompression ratio is too high\n\033[0m"
                     f"(cr: {compression_ratio:.2f} > {(options.compression_ratio_threshold * 1.2):.2f})\n"
