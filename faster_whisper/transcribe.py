@@ -431,13 +431,13 @@ class WhisperModel:
             # low avg_logprob check
             if (
                 options.log_prob_threshold is not None
-                and avg_logprob < options.log_prob_threshold * 1.2
+                and avg_logprob < options.log_prob_threshold * 2.0
             ):
                 text = tokenizer.decode(tokens)
 
                 info_message = (
                     "\033[94mAverage log probability is too low\n\033[0m"
-                    f"(alp: {avg_logprob:.2f} < {(options.log_prob_threshold * 1.2):.2f})\n"
+                    f"(alp: {avg_logprob:.2f} < {(options.log_prob_threshold * 2.0):.2f})\n"
                     f"{text}\n"
                     f"alp: {avg_logprob:.2f} nsp: {result.no_speech_prob:.2f} t: {temperature} cr: {compression_ratio:.2f}"
                     "\n\n"
