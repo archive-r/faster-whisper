@@ -735,7 +735,7 @@ class WhisperModel:
                     threshold_results = [
                         result
                         for result in all_results
-                        if not result[1] >= log_prob_threshold * rate
+                        if result[1] >= log_prob_threshold * rate
                         and result[3] <= compression_ratio_threshold * rate
                     ]
 
