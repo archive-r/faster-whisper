@@ -550,26 +550,26 @@ class WhisperModel:
                     prompt_reset_since = len(all_tokens)
                 continue
 
-            # # high compression ratio check
-            # if (
-            #     options.compression_ratio_threshold is not None
-            #     and compression_ratio > options.compression_ratio_threshold * 1.2
-            # ):
-            #     text = tokenizer.decode(result.sequences_ids[0])
+            # high compression ratio check
+            if (
+                options.compression_ratio_threshold is not None
+                and compression_ratio > options.compression_ratio_threshold * 1.2
+            ):
+                text = tokenizer.decode(result.sequences_ids[0])
 
-            #     info_message = (
-            #         "\033[93mCompression ratio is too high\n\033[0m"
-            #         f"(cr: {compression_ratio:.2f} > {(options.compression_ratio_threshold * 1.2):.2f})\n"
-            #         f"{text}\n"
-            #         f"alp: {avg_logprob:.2f} nsp: {result.no_speech_prob:.2f} t: {temperature}, cr: {compression_ratio:.2f}s"
-            #         "\n\n"
-            #     )
-            #     self.logger.info(info_message)
+                info_message = (
+                    "\033[93mCompression ratio is too high\n\033[0m"
+                    f"(cr: {compression_ratio:.2f} > {(options.compression_ratio_threshold * 1.2):.2f})\n"
+                    f"{text}\n"
+                    f"alp: {avg_logprob:.2f} nsp: {result.no_speech_prob:.2f} t: {temperature}, cr: {compression_ratio:.2f}s"
+                    "\n\n"
+                )
+                self.logger.info(info_message)
 
-            #     if not options.condition_on_previous_text or temperature > 0.5:
-            #         prompt_reset_since = len(all_tokens)
+                if not options.condition_on_previous_text or temperature > 0.5:
+                    prompt_reset_since = len(all_tokens)
 
-            #     continue
+                continue
 
             for segment in current_segments:
                 tokens = segment["tokens"]
@@ -743,6 +743,7 @@ class WhisperModel:
                         break
 
                     rate += 0.1
+                    print(rate)
             else:
                 decode_result = max(all_results, key=lambda x: x[1])
 
