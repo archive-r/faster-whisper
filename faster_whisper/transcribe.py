@@ -423,7 +423,7 @@ class WhisperModel:
                     )
 
                     # fast-forward to the next segment boundary
-                    seek += segment_size // 3
+                    seek += segment_size
                     continue
 
             tokens = result.sequences_ids[0]
@@ -758,18 +758,6 @@ class WhisperModel:
                     rate += 0.1
             else:
                 decode_result = max(all_results, key=lambda x: x[1])
-
-            # if needs_logging:
-            #     text = tokenizer.decode(decode_result[0].sequences_ids[0]).strip()
-            #     info_message = (
-            #         "\033[94m선택 결과n\033[0m"
-            #         f"{text}\n"
-            #         f"alp: {decode_result[1]:.2f} nsp: {decode_result[0].no_speech_prob:.2f} t: {decode_result[2]} cr: {decode_result[3]:.2f}"
-            #         "----------------------\n\n"
-            #     )
-            #     # utf-8 encode 텍스트 파일로 저장
-            #     with open("silence_detected.txt", "a", encoding="utf-8") as f:
-            #         f.write(info_message)
 
         return decode_result
 
