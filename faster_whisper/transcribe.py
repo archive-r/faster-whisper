@@ -404,27 +404,27 @@ class WhisperModel:
                 compression_ratio,
             ) = self.generate_with_fallback(encoder_output, prompt, tokenizer, options)
 
-            if options.no_speech_threshold is not None:
-                # no voice activity check
-                should_skip = result.no_speech_prob > options.no_speech_threshold
+            # if options.no_speech_threshold is not None:
+            #     # no voice activity check
+            #     should_skip = result.no_speech_prob > options.no_speech_threshold
 
-                if (
-                    options.log_prob_threshold is not None
-                    and avg_logprob > options.log_prob_threshold
-                ):
-                    # don't skip if the logprob is high enough, despite the no_speech_prob
-                    should_skip = False
+            #     if (
+            #         options.log_prob_threshold is not None
+            #         and avg_logprob > options.log_prob_threshold
+            #     ):
+            #         # don't skip if the logprob is high enough, despite the no_speech_prob
+            #         should_skip = False
 
-                if should_skip:
-                    self.logger.debug(
-                        "No speech threshold is met (%f > %f)",
-                        result.no_speech_prob,
-                        options.no_speech_threshold,
-                    )
+            #     if should_skip:
+            #         self.logger.debug(
+            #             "No speech threshold is met (%f > %f)",
+            #             result.no_speech_prob,
+            #             options.no_speech_threshold,
+            #         )
 
-                    # fast-forward to the next segment boundary
-                    seek += segment_size
-                    continue
+            #         # fast-forward to the next segment boundary
+            #         seek += segment_size
+            #         continue
 
             tokens = result.sequences_ids[0]
 
@@ -712,11 +712,11 @@ class WhisperModel:
                     options.log_prob_threshold,
                 )
 
-            if (
-                options.no_speech_threshold is not None
-                and result.no_speech_prob > options.no_speech_threshold
-            ):
-                needs_fallback = True  # silence
+            # if (
+            #     options.no_speech_threshold is not None
+            #     and result.no_speech_prob > options.no_speech_threshold
+            # ):
+            #     needs_fallback = False  # silence
 
             if not needs_fallback:
                 break
