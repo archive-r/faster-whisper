@@ -404,28 +404,6 @@ class WhisperModel:
                 compression_ratio,
             ) = self.generate_with_fallback(encoder_output, prompt, tokenizer, options)
 
-            if not options.no_speech_threshold is not None:
-                # no voice activity check
-                should_skip = result.no_speech_prob > options.no_speech_threshold
-
-                if (
-                    options.log_prob_threshold is not None
-                    and avg_logprob >= options.log_prob_threshold
-                ):
-                    # don't skip if the logprob is high enough, despite the no_speech_prob
-                    should_skip = False
-
-                if should_skip:
-                    self.logger.debug(
-                        "No speech threshold is met (%f > %f)",
-                        result.no_speech_prob,
-                        options.no_speech_threshold,
-                    )
-
-                    # fast-forward to the next segment boundary
-                    seek += segment_size
-                    continue
-
             tokens = result.sequences_ids[0]
 
             previous_seek = seek
@@ -532,6 +510,28 @@ class WhisperModel:
 
             encoder_output = None
 
+            if options.no_speech_threshold is not None:
+                # no voice activity check
+                should_skip = result.no_speech_prob > options.no_speech_threshold
+
+                if (
+                    options.log_prob_threshold is not None
+                    and avg_logprob >= options.log_prob_threshold
+                ):
+                    # don't skip if the logprob is high enough, despite the no_speech_prob
+                    should_skip = False
+
+                if should_skip:
+                    self.logger.debug(
+                        "No speech threshold is met (%f > %f)",
+                        result.no_speech_prob,
+                        options.no_speech_threshold,
+                    )
+
+                    # fast-forward to the next segment boundary
+                    seek += segment_size
+                    continue
+
             # low avg_logprob check
             if (
                 options.log_prob_threshold is not None
@@ -548,10 +548,6 @@ class WhisperModel:
                 )
 
                 self.logger.info(info_message)
-
-                # utf-8 encode 텍스트 파일로 저장
-                with open("low_avg_logprob.txt", "a", encoding="utf-8") as f:
-                    f.write(info_message)
 
                 if not options.condition_on_previous_text or temperature > 0.5:
                     prompt_reset_since = len(all_tokens)
@@ -573,10 +569,6 @@ class WhisperModel:
                     "\n\n"
                 )
                 self.logger.info(info_message)
-
-                # utf-8 encode 텍스트 파일로 저장
-                with open("high_compression_ratio.txt", "a", encoding="utf-8") as f:
-                    f.write(info_message)
 
                 if not options.condition_on_previous_text or temperature > 0.5:
                     prompt_reset_since = len(all_tokens)
