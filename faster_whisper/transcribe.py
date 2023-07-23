@@ -731,6 +731,7 @@ class WhisperModel:
                 rate = 1
 
                 while True:
+                    print("rate", rate)
                     threshold_results = [
                         result
                         for result in all_results
@@ -743,7 +744,7 @@ class WhisperModel:
                         break
 
                     rate += 0.1
-                    print(rate)
+
             else:
                 decode_result = max(all_results, key=lambda x: x[1])
 
