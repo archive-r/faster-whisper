@@ -601,7 +601,6 @@ class WhisperModel:
                         f"{text}\n"
                         f"alp: {avg_logprob:.2f} nsp: {result.no_speech_prob:.2f} t: {temperature} cr: {compression_ratio:.2f}"
                     )
-
                     continue
 
                 prompt_text_deque.append(text.strip())
