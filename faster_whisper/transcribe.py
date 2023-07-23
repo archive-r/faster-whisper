@@ -741,13 +741,11 @@ class WhisperModel:
 
                     if threshold_results:
                         decode_result = max(threshold_results, key=lambda x: x[1])
-                        break
+                        return decode_result
 
                     rate += 0.1
 
-            else:
-                decode_result = max(all_results, key=lambda x: x[1])
-
+        decode_result = max(all_results, key=lambda x: x[1])
         return decode_result
 
     def get_prompt(
