@@ -537,9 +537,7 @@ class WhisperModel:
                 options.log_prob_threshold is not None
                 and avg_logprob < options.log_prob_threshold * 2.0
             ):
-                print("텍스트 이전")
                 text = tokenizer.decode(result.sequences_ids[0])
-                print("텍스트 이후")
                 info_message = (
                     "\033[94mAverage log probability is too low\n\033[0m"
                     f"(alp: {avg_logprob:.2f} < {(options.log_prob_threshold * 2.0):.2f})\n"
@@ -547,12 +545,9 @@ class WhisperModel:
                     f"alp: {avg_logprob:.2f} nsp: {result.no_speech_prob:.2f} t: {temperature} cr: {compression_ratio:.2f}"
                     "\n\n"
                 )
-                print("아니면")
                 self.logger.info(info_message)
-                print("여기?")
                 if not options.condition_on_previous_text or temperature > 0.5:
                     prompt_reset_since = len(all_tokens)
-                print("마지막?")
                 continue
 
             # # high compression ratio check
