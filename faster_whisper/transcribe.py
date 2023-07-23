@@ -429,8 +429,6 @@ class WhisperModel:
                 if not options.condition_on_previous_text or temperature > 0.5:
                     prompt_reset_since = len(all_tokens)
 
-                # fast-forward to the next segment boundary
-                seek += segment_size
                 continue
 
             # high compression ratio check
@@ -457,8 +455,6 @@ class WhisperModel:
                 if not options.condition_on_previous_text or temperature > 0.5:
                     prompt_reset_since = len(all_tokens)
 
-                # fast-forward to the next segment boundary
-                seek += segment_size
                 continue
 
             if not options.no_speech_threshold is not None:
