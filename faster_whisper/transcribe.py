@@ -410,7 +410,7 @@ class WhisperModel:
 
                 if (
                     options.log_prob_threshold is not None
-                    and avg_logprob >= options.log_prob_threshold
+                    and avg_logprob > options.log_prob_threshold
                 ):
                     # don't skip if the logprob is high enough, despite the no_speech_prob
                     should_skip = False
