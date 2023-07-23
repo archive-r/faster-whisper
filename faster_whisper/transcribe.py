@@ -412,12 +412,19 @@ class WhisperModel:
                 tokens = result.sequences_ids[0]
                 text = tokenizer.decode(tokens)
 
-                self.logger.info(
+                info_message = (
                     "\033[94mAverage log probability is too low\n\033[0m"
                     f"(alp: {avg_logprob:.2f} < {(options.log_prob_threshold * 1.5):.2f})\n"
                     f"{text}\n"
                     f"alp: {avg_logprob:.2f} nsp: {result.no_speech_prob:.2f} t: {temperature} cr: {compression_ratio:.2f}"
+                    "\n\n"
                 )
+
+                self.logger.info(info_message)
+
+                # utf-8 encode 텍스트 파일로 저장
+                with open("low_avg_logprob.txt", "a", encoding="utf-8") as f:
+                    f.write(info_message)
 
                 if not options.condition_on_previous_text or temperature > 0.5:
                     prompt_reset_since = len(all_tokens)
@@ -434,12 +441,18 @@ class WhisperModel:
                 tokens = result.sequences_ids[0]
                 text = tokenizer.decode(tokens)
 
-                self.logger.info(
+                info_message = (
                     "\033[93mCompression ratio is too high\n\033[0m"
                     f"(cr: {compression_ratio:.2f} > {(options.compression_ratio_threshold * 1.2):.2f})\n"
                     f"{text}\n"
                     f"alp: {avg_logprob:.2f} nsp: {result.no_speech_prob:.2f} t: {temperature}, cr: {compression_ratio:.2f}s"
+                    "\n\n"
                 )
+                self.logger.info(info_message)
+
+                # utf-8 encode 텍스트 파일로 저장
+                with open("high_compression_ratio.txt", "a", encoding="utf-8") as f:
+                    f.write(info_message)
 
                 if not options.condition_on_previous_text or temperature > 0.5:
                     prompt_reset_since = len(all_tokens)
