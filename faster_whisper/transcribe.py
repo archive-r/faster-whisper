@@ -743,7 +743,9 @@ class WhisperModel:
                         decode_result = max(threshold_results, key=lambda x: x[1])
                         break
 
-                    rate += 0.2
+                    rate += 0.1
+            else:
+                decode_result = max(all_results, key=lambda x: x[1])
 
         return decode_result
 
