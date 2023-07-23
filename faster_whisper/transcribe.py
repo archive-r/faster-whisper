@@ -698,6 +698,7 @@ class WhisperModel:
             all_results.append(decode_result)
 
             needs_fallback = False
+            needs_logging = False
 
             if (
                 options.compression_ratio_threshold is not None
