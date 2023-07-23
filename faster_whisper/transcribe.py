@@ -737,30 +737,30 @@ class WhisperModel:
             if not needs_fallback:
                 break
         else:
-            # all failed, select the result with the highest average log probability
-            if (
-                options.log_prob_threshold is None
-                and options.compression_ratio_threshold is None
-            ):
-                log_prob_threshold = options.log_prob_threshold
-                compression_ratio_threshold = options.compression_ratio_threshold
-                rate = 1
+            # # all failed, select the result with the highest average log probability
+            # if (
+            #     options.log_prob_threshold is None
+            #     and options.compression_ratio_threshold is None
+            # ):
+            #     log_prob_threshold = options.log_prob_threshold
+            #     compression_ratio_threshold = options.compression_ratio_threshold
+            #     rate = 1
 
-                while True:
-                    threshold_results = [
-                        result
-                        for result in all_results
-                        if result[1] >= log_prob_threshold * rate
-                        and result[3] <= compression_ratio_threshold * rate
-                    ]
+            #     while True:
+            #         threshold_results = [
+            #             result
+            #             for result in all_results
+            #             if result[1] >= log_prob_threshold * rate
+            #             and result[3] <= compression_ratio_threshold * rate
+            #         ]
 
-                    if threshold_results:
-                        decode_result = max(threshold_results, key=lambda x: x[1])
-                        break
+            #         if threshold_results:
+            #             decode_result = max(threshold_results, key=lambda x: x[1])
+            #             break
 
-                    rate += 0.1
-            else:
-                decode_result = max(all_results, key=lambda x: x[1])
+            #         rate += 0.1
+            # else:
+            decode_result = max(all_results, key=lambda x: x[1])
 
         return decode_result
 
