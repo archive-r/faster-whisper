@@ -729,7 +729,7 @@ class WhisperModel:
                 options.no_speech_threshold is not None
                 and result.no_speech_prob > options.no_speech_threshold
             ):
-                needs_fallback = True  # silence
+                needs_fallback = False  # silence
 
             if not needs_fallback:
                 break
