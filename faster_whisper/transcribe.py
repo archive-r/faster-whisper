@@ -740,6 +740,10 @@ class WhisperModel:
                 )
                 self.logger.info(info_message)
 
+                # utf-8 encode 텍스트 파일로 저장
+                with open("silence_detected.txt", "a", encoding="utf-8") as f:
+                    f.write(info_message)
+
             if not needs_fallback:
                 break
         else:
