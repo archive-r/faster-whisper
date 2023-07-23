@@ -727,8 +727,6 @@ class WhisperModel:
             ):
                 log_prob_threshold = options.log_prob_threshold
                 compression_ratio_threshold = options.compression_ratio_threshold
-
-                decode_result = None
                 rate = 1
 
                 while True:
