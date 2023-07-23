@@ -405,6 +405,8 @@ class WhisperModel:
             ) = self.generate_with_fallback(encoder_output, prompt, tokenizer, options)
 
             should_skip = False
+            tokens = result.sequences_ids[0]
+            text = tokenizer.decode(tokens)
 
             # low avg_logprob check
             if (
