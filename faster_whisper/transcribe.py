@@ -730,8 +730,8 @@ class WhisperModel:
                 options.no_speech_threshold is not None
                 and result.no_speech_prob > options.no_speech_threshold
             ):
-                needs_fallback = True  # silence
-                needs_logging = True
+                needs_fallback = False  # silence
+                needs_logging = False
                 info_message = (
                     "\033[94mSilence Detected\n\033[0m"
                     f"(nsp: {result.no_speech_prob:.2f} > {options.no_speech_threshold})\n"
