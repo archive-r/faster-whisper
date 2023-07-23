@@ -530,8 +530,6 @@ class WhisperModel:
                     if seek_shift > 0:
                         seek = previous_seek + seek_shift
 
-            encoder_output = None
-
             # low avg_logprob check
             if (
                 options.log_prob_threshold is not None
@@ -574,6 +572,8 @@ class WhisperModel:
                     prompt_reset_since = len(all_tokens)
 
                 continue
+
+            encoder_output = None
 
             for segment in current_segments:
                 tokens = segment["tokens"]
