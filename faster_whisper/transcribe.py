@@ -739,8 +739,8 @@ class WhisperModel:
         else:
             # # all failed, select the result with the highest average log probability
             # if (
-            #     options.log_prob_threshold is None
-            #     and options.compression_ratio_threshold is None
+            #     options.log_prob_threshold is not None
+            #     and options.compression_ratio_threshold is not None
             # ):
             #     log_prob_threshold = options.log_prob_threshold
             #     compression_ratio_threshold = options.compression_ratio_threshold
