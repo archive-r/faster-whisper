@@ -728,8 +728,6 @@ class WhisperModel:
             if (
                 options.no_speech_threshold is not None
                 and result.no_speech_prob > options.no_speech_threshold
-                and avg_logprob >= options.log_prob_threshold
-                and compression_ratio <= options.compression_ratio_threshold
             ):
                 needs_fallback = False  # silence
 
