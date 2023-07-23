@@ -528,8 +528,8 @@ class WhisperModel:
                         options.no_speech_threshold,
                     )
 
-                    # fast-forward to the next segment boundary
-                    seek += segment_size
+                    # # fast-forward to the next segment boundary
+                    # seek += segment_size
                     continue
 
             # low avg_logprob check
