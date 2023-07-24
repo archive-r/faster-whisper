@@ -429,58 +429,6 @@ class WhisperModel:
                     encoder_output = None
                     continue
 
-            # low avg_logprob check
-            if (
-                options.log_prob_threshold is not None
-                and avg_logprob < options.log_prob_threshold * 1.2
-            ):
-                text = tokenizer.decode(tokens)
-                info_message = (
-                    "\033[94mAverage log probability is too low\n\033[0m"
-                    f"{text}\n"
-                    f"alp: {avg_logprob:.2f} "
-                    f"nsp: {result.no_speech_prob:.2f} "
-                    f"t: {temperature} "
-                    f"cr: {compression_ratio:.2f}"
-                )
-
-                # utf-8 text 파일로 저장
-                with open("low_avg_logprob.txt", "a", encoding="utf-8") as f:
-                    f.write(info_message + "\n\n")
-
-                self.logger.info(info_message)
-
-                # fast-forward to the next segment boundary
-                seek += segment_size
-                encoder_output = None
-                continue
-
-            # high compression ratio check
-            if (
-                options.compression_ratio_threshold is not None
-                and compression_ratio > options.compression_ratio_threshold * 1.2
-            ):
-                text = tokenizer.decode(tokens)
-                info_message = (
-                    "\033[93mCompression ratio is too high\n\033[0m"
-                    f"{text}\n"
-                    f"alp: {avg_logprob:.2f} "
-                    f"nsp: {result.no_speech_prob:.2f} "
-                    f"t: {temperature} "
-                    f"cr: {compression_ratio:.2f}"
-                )
-
-                # utf-8 text 파일로 저장
-                with open("high_compression_ratio.txt", "a", encoding="utf-8") as f:
-                    f.write(info_message + "\n\n")
-
-                self.logger.info(info_message)
-
-                # fast-forward to the next segment boundary
-                seek += segment_size
-                encoder_output = None
-                continue
-
             previous_seek = seek
             current_segments = []
 
@@ -582,6 +530,54 @@ class WhisperModel:
 
                     if seek_shift > 0:
                         seek = previous_seek + seek_shift
+
+            # low avg_logprob check
+            if (
+                options.log_prob_threshold is not None
+                and avg_logprob < options.log_prob_threshold * 1.2
+            ):
+                text = tokenizer.decode(tokens)
+                info_message = (
+                    "\033[94mAverage log probability is too low\n\033[0m"
+                    f"{text}\n"
+                    f"alp: {avg_logprob:.2f} "
+                    f"nsp: {result.no_speech_prob:.2f} "
+                    f"t: {temperature} "
+                    f"cr: {compression_ratio:.2f}"
+                )
+
+                # utf-8 text 파일로 저장
+                with open("low_avg_logprob.txt", "a", encoding="utf-8") as f:
+                    f.write(info_message + "\n\n")
+
+                self.logger.info(info_message)
+
+                encoder_output = None
+                continue
+
+            # high compression ratio check
+            if (
+                options.compression_ratio_threshold is not None
+                and compression_ratio > options.compression_ratio_threshold * 1.2
+            ):
+                text = tokenizer.decode(tokens)
+                info_message = (
+                    "\033[93mCompression ratio is too high\n\033[0m"
+                    f"{text}\n"
+                    f"alp: {avg_logprob:.2f} "
+                    f"nsp: {result.no_speech_prob:.2f} "
+                    f"t: {temperature} "
+                    f"cr: {compression_ratio:.2f}"
+                )
+
+                # utf-8 text 파일로 저장
+                with open("high_compression_ratio.txt", "a", encoding="utf-8") as f:
+                    f.write(info_message + "\n\n")
+
+                self.logger.info(info_message)
+
+                encoder_output = None
+                continue
 
             encoder_output = None
 
