@@ -763,14 +763,14 @@ class WhisperModel:
             temperature = decode_result[2]
             compression_ratio = decode_result[3]
 
-            info_message = (
+            current_info = (
                 f"{text}\n"
                 f"alp: {avg_logprob:.2f} nsp: {result.no_speech_prob:.2f} t: {temperature} cr: {compression_ratio:.2f}"
             )
 
             # utf-8 text 파일로 저장
             with open("silence.txt", "a", encoding="utf-8") as f:
-                f.write(info_message + "\n\n")
+                f.write(prev_fallback_info + "\n" + current_info + "\n\n")
 
         return decode_result
 
