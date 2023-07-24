@@ -685,12 +685,24 @@ class WhisperModel:
             all_results.append(decode_result)
 
             needs_fallback = False
+            needs_logging = False
 
             if (
                 options.no_speech_threshold is not None
                 and result.no_speech_prob > options.no_speech_threshold
             ):
                 needs_fallback = False  # silence
+                needs_logging = True
+
+                info_message = (
+                    "\033[94mSilence detected\033[0m\n"
+                    f"{text}\n"
+                    f"alp: {avg_logprob:.2f} nsp: {result.no_speech_prob:.2f} t: {temperature} cr: {compression_ratio:.2f}"
+                )
+
+                # utf-8 text 파일로 저장
+                with open("silence.txt", "a", encoding="utf-8") as f:
+                    f.write(info_message + "\n")
 
             if (
                 options.compression_ratio_threshold is not None
@@ -746,6 +758,17 @@ class WhisperModel:
                     rate += 0.1
 
         decode_result = max(all_results, key=lambda x: x[1])
+
+        if needs_logging:
+            info_message = (
+                f"{text}\n"
+                f"alp: {avg_logprob:.2f} nsp: {result.no_speech_prob:.2f} t: {temperature} cr: {compression_ratio:.2f}"
+            )
+
+            # utf-8 text 파일로 저장
+            with open("silence.txt", "a", encoding="utf-8") as f:
+                f.write(info_message + "\n\n")
+
         return decode_result
 
     def get_prompt(
