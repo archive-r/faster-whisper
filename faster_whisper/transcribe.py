@@ -767,6 +767,7 @@ class WhisperModel:
             def get_info(result):
                 text = tokenizer.decode(result[0].sequences_ids[0]).strip()
                 avg_logprob = result[1]
+                no_speech_prob = result[0].no_speech_prob
                 temperature = result[2]
                 compression_ratio = result[3]
 
