@@ -783,7 +783,7 @@ class WhisperModel:
                 return result_info
 
             non_fallback_result_info = (
-                "**[ non_fallback_result  ]**\n" f"{get_info(non_fallback_result)}\n"
+                "**[ non_fallback_result ]**\n" f"{get_info(non_fallback_result)}\n"
             )
             highest_logprob_result_info = (
                 "**[ highest_logprob_result ]**\n"
