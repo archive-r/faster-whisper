@@ -758,6 +758,7 @@ class WhisperModel:
                         below_cr_threshold_result = (
                             decode_result if rate == 1 else highest_logprob_result
                         )
+                        openai_whisper_result = max(all_results, key=lambda x: x[2])
                         break
 
                     rate += 0.2
@@ -794,12 +795,17 @@ class WhisperModel:
                 "[ adaptive_result ]\n" f"{get_info(adaptive_result)}\n\n"
             )
 
+            openai_whisper_result_info = (
+                "[ openai_whisper_result ]\n" f"{get_info(openai_whisper_result)}\n\n"
+            )
+
             with open("results.txt", "a", encoding="utf-8") as f:
                 f.write(
                     non_fallback_result_info
                     + highest_logprob_result_info
                     + below_cr_threshold_result_info
                     + adaptive_result_info
+                    + openai_whisper_result_info
                     + "--------------------------------\n\n\n\n"
                 )
 
