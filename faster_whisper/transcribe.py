@@ -718,6 +718,7 @@ class WhisperModel:
 
             if temperature == 0:
                 first_result = decode_result
+
             needs_fallback = False
 
             if (
@@ -746,15 +747,11 @@ class WhisperModel:
                     options.log_prob_threshold,
                 )
 
-            if (
-                options.no_speech_threshold is not None
-                and result.no_speech_prob > options.no_speech_threshold
-            ):
-                # do not check no_speech_prob
-                # needs_fallback = False  # silence
-
-                if first_result is None:
-                    first_result = decode_result
+            # if (
+            #     options.no_speech_threshold is not None
+            #     and result.no_speech_prob > options.no_speech_threshold
+            # ):
+            #     needs_fallback = False  # silence
 
             if not needs_fallback:
                 break
