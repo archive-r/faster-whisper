@@ -774,7 +774,7 @@ class WhisperModel:
                 result_info = (
                     f"{text}\n"
                     f"alp: {avg_logprob:.2f} "
-                    f"nsp: {result.no_speech_prob:.2f} "
+                    f"nsp: {no_speech_prob:.2f} "
                     f"t: {temperature} "
                     f"cr: {compression_ratio:.2f}"
                 )
