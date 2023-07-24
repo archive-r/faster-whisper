@@ -412,9 +412,7 @@ class WhisperModel:
 
                 if (
                     options.log_prob_threshold is not None
-                    and options.compression_ratio_threshold is not None
                     and avg_logprob >= options.log_prob_threshold
-                    and compression_ratio <= options.compression_ratio_threshold
                 ):
                     # don't skip if the logprob is high enough, despite the no_speech_prob
                     should_skip = False
@@ -425,22 +423,6 @@ class WhisperModel:
                         result.no_speech_prob,
                         options.no_speech_threshold,
                     )
-
-                    text = tokenizer.decode(tokens)
-                    info_message = (
-                        "\033[94mSilence detected\033[0m\n"
-                        f"{text}\n"
-                        f"alp: {avg_logprob:.2f} "
-                        f"nsp: {result.no_speech_prob:.2f} "
-                        f"t: {temperature} "
-                        f"cr: {compression_ratio:.2f}"
-                    )
-
-                    # utf-8 text 파일로 저장
-                    with open("silence.txt", "a", encoding="utf-8") as f:
-                        f.write(info_message + "\n\n")
-
-                    self.logger.info(info_message)
 
                     # fast-forward to the next segment boundary
                     seek += segment_size
@@ -747,11 +729,11 @@ class WhisperModel:
                     options.log_prob_threshold,
                 )
 
-            # if (
-            #     options.no_speech_threshold is not None
-            #     and result.no_speech_prob > options.no_speech_threshold
-            # ):
-            #     needs_fallback = False  # silence
+            if (
+                options.no_speech_threshold is not None
+                and result.no_speech_prob > options.no_speech_threshold
+            ):
+                needs_fallback = False  # silence
 
             if not needs_fallback:
                 break
