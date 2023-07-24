@@ -791,7 +791,7 @@ class WhisperModel:
                 f"{get_info(below_cr_threshold_result)}\n\n"
             )
             adaptive_result_info = (
-                "**[ adaptive_result ]**\n" f"{get_info(adaptive_result)}\n\n"
+                "[ adaptive_result ]\n" f"{get_info(adaptive_result)}\n\n"
             )
 
             with open("results.txt", "a", encoding="utf-8") as f:
