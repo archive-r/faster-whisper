@@ -695,7 +695,7 @@ class WhisperModel:
             all_results.append(decode_result)
 
             if temperature == 0:
-                first_result = decode_result
+                non_fallback_result = decode_result
 
             needs_fallback = False
 
@@ -744,7 +744,6 @@ class WhisperModel:
                 rate = 1
 
                 while True:
-                    print("rate", rate)
                     threshold_results = [
                         result
                         for result in all_results
@@ -754,48 +753,55 @@ class WhisperModel:
 
                     if threshold_results:
                         decode_result = max(threshold_results, key=lambda x: x[1])
-                        return decode_result
+                        adaptive_result = decode_result
+                        highest_logprob_result = max(all_results, key=lambda x: x[1])
+                        below_cr_threshold_result = (
+                            decode_result if rate == 1 else highest_logprob_result
+                        )
+                        break
 
-                    rate += 0.1
+                    rate += 0.2
             else:
                 decode_result = max(all_results, key=lambda x: x[1])
 
-        if first_result != decode_result:
-            text = tokenizer.decode(first_result[0].sequences_ids[0]).strip()
-            avg_logprob = first_result[1]
-            result = first_result[0]
-            temperature = first_result[2]
-            compression_ratio = first_result[3]
+        if non_fallback_result != decode_result:
 
-            first_result_info = (
-                "\033[94mFirst result\033[0m\n"
-                f"{text}\n"
-                f"alp: {avg_logprob:.2f} "
-                f"nsp: {result.no_speech_prob:.2f} "
-                f"t: {temperature} "
-                f"cr: {compression_ratio:.2f}"
+            def get_info(result):
+                text = tokenizer.decode(result[0].sequences_ids[0]).strip()
+                avg_logprob = result[1]
+                result = result[0]
+                temperature = result[2]
+                compression_ratio = result[3]
+
+                result_info = (
+                    f"{text}\n"
+                    f"alp: {avg_logprob:.2f} "
+                    f"nsp: {result.no_speech_prob:.2f} "
+                    f"t: {temperature} "
+                    f"cr: {compression_ratio:.2f}"
+                )
+                return result_info
+
+            non_fallback_result_info = (
+                "non_fallback_result\n" f"{get_info(non_fallback_result)}\n"
+            )
+            highest_logprob_result_info = (
+                "highest_logprob_result\n" f"{get_info(highest_logprob_result)}\n"
+            )
+            below_cr_threshold_result_info = (
+                "below_cr_threshold_result\n" f"{get_info(below_cr_threshold_result)}\n"
+            )
+            adaptive_result_info = (
+                "adaptive_result\n" f"{get_info(adaptive_result)}\n\n"
             )
 
-            text = tokenizer.decode(decode_result[0].sequences_ids[0]).strip()
-            avg_logprob = decode_result[1]
-            result = decode_result[0]
-            temperature = decode_result[2]
-            compression_ratio = decode_result[3]
-
-            final_result_info = (
-                "\033[94mFinal result\033[0m\n"
-                f"{text}\n"
-                f"alp: {avg_logprob:.2f} "
-                f"nsp: {result.no_speech_prob:.2f} "
-                f"t: {temperature} "
-                f"cr: {compression_ratio:.2f}"
-            )
-
-            # utf-8 text 파일로 저장
-            with open("fallback_results.txt", "a", encoding="utf-8") as f:
-                f.write(first_result_info + "\n" + final_result_info + "\n\n")
-
-            self.logger.info(first_result_info + "\n" + final_result_info)
+            with open("results.txt", "a", encoding="utf-8") as f:
+                f.write(
+                    non_fallback_result_info
+                    + highest_logprob_result_info
+                    + below_cr_threshold_result_info
+                    + adaptive_result_info
+                )
 
         return decode_result
 
