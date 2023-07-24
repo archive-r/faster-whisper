@@ -781,18 +781,17 @@ class WhisperModel:
                 return result_info
 
             non_fallback_result_info = (
-                "**[ non_fallback_result ]**\n" f"{get_info(non_fallback_result)}\n"
+                "[ non_fallback_result ]\n" f"{get_info(non_fallback_result)}\n\n"
             )
             highest_logprob_result_info = (
-                "**[ highest_logprob_result ]**\n"
-                f"{get_info(highest_logprob_result)}\n"
+                "[ highest_logprob_result ]\n" f"{get_info(highest_logprob_result)}\n\n"
             )
             below_cr_threshold_result_info = (
-                "**[ below_cr_threshold_result ]**\n"
-                f"{get_info(below_cr_threshold_result)}\n"
+                "[ below_cr_threshold_result ]\n"
+                f"{get_info(below_cr_threshold_result)}\n\n"
             )
             adaptive_result_info = (
-                "**[ adaptive_result ]**\n" f"{get_info(adaptive_result)}\n\n\n"
+                "**[ adaptive_result ]**\n" f"{get_info(adaptive_result)}\n\n"
             )
 
             with open("results.txt", "a", encoding="utf-8") as f:
@@ -801,6 +800,7 @@ class WhisperModel:
                     + highest_logprob_result_info
                     + below_cr_threshold_result_info
                     + adaptive_result_info
+                    + "--------------------------------\n\n\n\n"
                 )
 
         return decode_result
