@@ -410,7 +410,9 @@ class WhisperModel:
 
                 if (
                     options.log_prob_threshold is not None
+                    and options.compression_ratio_threshold is not None
                     and avg_logprob >= options.log_prob_threshold
+                    and compression_ratio <= options.compression_ratio_threshold
                 ):
                     # don't skip if the logprob is high enough, despite the no_speech_prob
                     should_skip = False
@@ -422,6 +424,22 @@ class WhisperModel:
                         options.no_speech_threshold,
                     )
 
+                    text = tokenizer.decode(result.sequences_ids[0])
+                    info_message = (
+                        "\033[94mSilence detected\033[0m\n"
+                        f"{text}\n"
+                        f"alp: {avg_logprob:.2f} "
+                        f"nsp: {result.no_speech_prob:.2f} "
+                        f"t: {temperature} "
+                        f"cr: {compression_ratio:.2f}"
+                    )
+
+                    # utf-8 text 파일로 저장
+                    with open("silence.txt", "a", encoding="utf-8") as f:
+                        f.write(info_message + "\n\n")
+
+                    self.logger.info(info_message)
+
                     # fast-forward to the next segment boundary
                     seek += segment_size
                     encoder_output = None
@@ -430,19 +448,23 @@ class WhisperModel:
             # low avg_logprob check
             if (
                 options.log_prob_threshold is not None
-                and avg_logprob < options.log_prob_threshold * 1.3
+                and avg_logprob < options.log_prob_threshold * 1.2
             ):
                 text = tokenizer.decode(result.sequences_ids[0])
                 info_message = (
                     "\033[94mAverage log probability is too low\n\033[0m"
-                    f"(alp: {avg_logprob:.2f} < {(options.log_prob_threshold * 2.0):.2f})\n"
                     f"{text}\n"
-                    f"alp: {avg_logprob:.2f} nsp: {result.no_speech_prob:.2f} t: {temperature} cr: {compression_ratio:.2f}"
-                    "\n\n"
+                    f"alp: {avg_logprob:.2f} "
+                    f"nsp: {result.no_speech_prob:.2f} "
+                    f"t: {temperature} "
+                    f"cr: {compression_ratio:.2f}"
                 )
+
+                # utf-8 text 파일로 저장
+                with open("low_avg_logprob.txt", "a", encoding="utf-8") as f:
+                    f.write(info_message + "\n\n")
+
                 self.logger.info(info_message)
-                if not options.condition_on_previous_text or temperature > 0.5:
-                    prompt_reset_since = len(all_tokens)
 
                 # fast-forward to the next segment boundary
                 seek += segment_size
@@ -452,21 +474,23 @@ class WhisperModel:
             # high compression ratio check
             if (
                 options.compression_ratio_threshold is not None
-                and compression_ratio > options.compression_ratio_threshold * 1.3
+                and compression_ratio > options.compression_ratio_threshold * 1.2
             ):
                 text = tokenizer.decode(result.sequences_ids[0])
-
                 info_message = (
                     "\033[93mCompression ratio is too high\n\033[0m"
-                    f"(cr: {compression_ratio:.2f} > {(options.compression_ratio_threshold * 1.2):.2f})\n"
                     f"{text}\n"
-                    f"alp: {avg_logprob:.2f} nsp: {result.no_speech_prob:.2f} t: {temperature}, cr: {compression_ratio:.2f}s"
-                    "\n\n"
+                    f"alp: {avg_logprob:.2f} "
+                    f"nsp: {result.no_speech_prob:.2f} "
+                    f"t: {temperature} "
+                    f"cr: {compression_ratio:.2f}"
                 )
-                self.logger.info(info_message)
 
-                if not options.condition_on_previous_text or temperature > 0.5:
-                    prompt_reset_since = len(all_tokens)
+                # utf-8 text 파일로 저장
+                with open("high_compression_ratio.txt", "a", encoding="utf-8") as f:
+                    f.write(info_message + "\n\n")
+
+                self.logger.info(info_message)
 
                 # fast-forward to the next segment boundary
                 seek += segment_size
@@ -647,8 +671,6 @@ class WhisperModel:
             round(options.max_initial_timestamp / self.time_precision)
         )
 
-        prev_fallback_info = None
-
         for temperature in options.temperatures:
             if temperature > 0:
                 kwargs = {
@@ -694,21 +716,9 @@ class WhisperModel:
             )
             all_results.append(decode_result)
 
+            if temperature == 0:
+                first_result = decode_result
             needs_fallback = False
-
-            # do not check no_speech_prob
-            if (
-                options.no_speech_threshold is not None
-                and result.no_speech_prob > options.no_speech_threshold
-            ):
-                needs_fallback = False  # silence
-
-                if prev_fallback_info is None:
-                    prev_fallback_info = (
-                        "\033[94mSilence detected\033[0m\n"
-                        f"{text}\n"
-                        f"alp: {avg_logprob:.2f} nsp: {result.no_speech_prob:.2f} t: {temperature} cr: {compression_ratio:.2f}"
-                    )
 
             if (
                 options.compression_ratio_threshold is not None
@@ -735,6 +745,16 @@ class WhisperModel:
                     avg_logprob,
                     options.log_prob_threshold,
                 )
+
+            if (
+                options.no_speech_threshold is not None
+                and result.no_speech_prob > options.no_speech_threshold
+            ):
+                # do not check no_speech_prob
+                # needs_fallback = False  # silence
+
+                if first_result is None:
+                    first_result = decode_result
 
             if not needs_fallback:
                 break
@@ -765,21 +785,42 @@ class WhisperModel:
             else:
                 decode_result = max(all_results, key=lambda x: x[1])
 
-        if prev_fallback_info is not None:
+        if first_result != decode_result:
+            text = tokenizer.decode(first_result[0].sequences_ids[0]).strip()
+            avg_logprob = first_result[1]
+            result = first_result[0]
+            temperature = first_result[2]
+            compression_ratio = first_result[3]
+
+            first_result_info = (
+                "\033[94mFirst result\033[0m\n"
+                f"{text}\n"
+                f"alp: {avg_logprob:.2f} "
+                f"nsp: {result.no_speech_prob:.2f} "
+                f"t: {temperature} "
+                f"cr: {compression_ratio:.2f}"
+            )
+
             text = tokenizer.decode(decode_result[0].sequences_ids[0]).strip()
             avg_logprob = decode_result[1]
             result = decode_result[0]
             temperature = decode_result[2]
             compression_ratio = decode_result[3]
 
-            current_info = (
+            final_result_info = (
+                "\033[94mFinal result\033[0m\n"
                 f"{text}\n"
-                f"alp: {avg_logprob:.2f} nsp: {result.no_speech_prob:.2f} t: {temperature} cr: {compression_ratio:.2f}"
+                f"alp: {avg_logprob:.2f} "
+                f"nsp: {result.no_speech_prob:.2f} "
+                f"t: {temperature} "
+                f"cr: {compression_ratio:.2f}"
             )
 
             # utf-8 text 파일로 저장
             with open("silence.txt", "a", encoding="utf-8") as f:
-                f.write(prev_fallback_info + "\n" + current_info + "\n\n")
+                f.write(first_result_info + "\n" + final_result_info + "\n\n")
+
+            self.logger.info(first_result_info + "\n" + final_result_info)
 
         return decode_result
 
