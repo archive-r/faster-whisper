@@ -814,7 +814,7 @@ class WhisperModel:
             )
 
             # utf-8 text 파일로 저장
-            with open("silence.txt", "a", encoding="utf-8") as f:
+            with open("fallback_results.txt", "a", encoding="utf-8") as f:
                 f.write(first_result_info + "\n" + final_result_info + "\n\n")
 
             self.logger.info(first_result_info + "\n" + final_result_info)
