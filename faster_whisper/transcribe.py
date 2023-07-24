@@ -764,46 +764,46 @@ class WhisperModel:
             else:
                 decode_result = max(all_results, key=lambda x: x[1])
 
-        if non_fallback_result != decode_result:
+            if non_fallback_result != decode_result:
 
-            def get_info(result):
-                text = tokenizer.decode(result[0].sequences_ids[0]).strip()
-                avg_logprob = result[1]
-                result = result[0]
-                temperature = result[2]
-                compression_ratio = result[3]
+                def get_info(result):
+                    text = tokenizer.decode(result[0].sequences_ids[0]).strip()
+                    avg_logprob = result[1]
+                    result = result[0]
+                    temperature = result[2]
+                    compression_ratio = result[3]
 
-                result_info = (
-                    f"{text}\n"
-                    f"alp: {avg_logprob:.2f} "
-                    f"nsp: {result.no_speech_prob:.2f} "
-                    f"t: {temperature} "
-                    f"cr: {compression_ratio:.2f}"
+                    result_info = (
+                        f"{text}\n"
+                        f"alp: {avg_logprob:.2f} "
+                        f"nsp: {result.no_speech_prob:.2f} "
+                        f"t: {temperature} "
+                        f"cr: {compression_ratio:.2f}"
+                    )
+                    return result_info
+
+                non_fallback_result_info = (
+                    "**[ non_fallback_result ]**\n" f"{get_info(non_fallback_result)}\n"
                 )
-                return result_info
-
-            non_fallback_result_info = (
-                "**[ non_fallback_result ]**\n" f"{get_info(non_fallback_result)}\n"
-            )
-            highest_logprob_result_info = (
-                "**[ highest_logprob_result ]**\n"
-                f"{get_info(highest_logprob_result)}\n"
-            )
-            below_cr_threshold_result_info = (
-                "**[ below_cr_threshold_result ]**\n"
-                f"{get_info(below_cr_threshold_result)}\n"
-            )
-            adaptive_result_info = (
-                "**[ adaptive_result ]**\n" f"{get_info(adaptive_result)}\n\n\n"
-            )
-
-            with open("results.txt", "a", encoding="utf-8") as f:
-                f.write(
-                    non_fallback_result_info
-                    + highest_logprob_result_info
-                    + below_cr_threshold_result_info
-                    + adaptive_result_info
+                highest_logprob_result_info = (
+                    "**[ highest_logprob_result ]**\n"
+                    f"{get_info(highest_logprob_result)}\n"
                 )
+                below_cr_threshold_result_info = (
+                    "**[ below_cr_threshold_result ]**\n"
+                    f"{get_info(below_cr_threshold_result)}\n"
+                )
+                adaptive_result_info = (
+                    "**[ adaptive_result ]**\n" f"{get_info(adaptive_result)}\n\n\n"
+                )
+
+                with open("results.txt", "a", encoding="utf-8") as f:
+                    f.write(
+                        non_fallback_result_info
+                        + highest_logprob_result_info
+                        + below_cr_threshold_result_info
+                        + adaptive_result_info
+                    )
 
         return decode_result
 
