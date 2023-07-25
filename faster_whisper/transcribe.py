@@ -531,6 +531,7 @@ class WhisperModel:
                     # 문장 정밀하게 건너뛰기
                     if should_skip:
                         break
+
                 if not should_skip:
                     if single_timestamp_ending:
                         # single timestamp at the end means no speech after the last timestamp.
@@ -563,8 +564,10 @@ class WhisperModel:
                         tokens=tokens,
                     )
                 )
-
-                seek += segment_size
+                if not should_skip:
+                    seek += segment_size
+                else:
+                    seek += last_timestamp_position * self.input_stride
 
             if options.word_timestamps:
                 self.add_word_timestamps(
