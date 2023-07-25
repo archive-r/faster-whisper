@@ -750,6 +750,7 @@ class WhisperModel:
                         decode_result = max(
                             below_cr_threshold_results, key=lambda x: x[1]
                         )
+
                         highest_logprob_result = max(all_results, key=lambda x: x[1])
                         below_cr_threshold_result = (
                             decode_result
@@ -758,8 +759,6 @@ class WhisperModel:
                         )
                         adaptive_result = decode_result
                         openai_whisper_result = max(all_results, key=lambda x: x[2])
-
-                        decode_result = below_cr_threshold_result
                         break
 
                     rate += 0.2
