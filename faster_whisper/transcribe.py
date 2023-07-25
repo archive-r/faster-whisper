@@ -751,7 +751,7 @@ class WhisperModel:
                             below_cr_threshold_results, key=lambda x: x[1]
                         )
                         highest_logprob_result = max(all_results, key=lambda x: x[1])
-                        below_cr_threshold_results = (
+                        below_cr_threshold_result = (
                             decode_result
                             if rate == 1
                             else max(all_results, key=lambda x: x[1])
