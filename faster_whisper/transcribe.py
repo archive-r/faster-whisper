@@ -406,7 +406,6 @@ class WhisperModel:
 
             tokens = result.sequences_ids[0]
             should_skip = False
-            skip_now = False
 
             if options.no_speech_threshold is not None:
                 # no voice activity check
@@ -530,22 +529,23 @@ class WhisperModel:
                     )
                     last_slice = current_slice
 
-                    if should_skip and not skip_now:
-                        skip_now = True
-                        continue
                     # 문장 정밀하게 건너뛰기
-                    if skip_now:
+                    if should_skip:
                         break
-
-                if single_timestamp_ending:
-                    # single timestamp at the end means no speech after the last timestamp.
-                    seek += segment_size
+                if not should_skip:
+                    if single_timestamp_ending:
+                        # single timestamp at the end means no speech after the last timestamp.
+                        seek += segment_size
+                    else:
+                        # otherwise, ignore the unfinished segment and seek to the last timestamp
+                        last_timestamp_position = (
+                            tokens[last_slice - 1] - tokenizer.timestamp_begin
+                        )
+                        seek += last_timestamp_position * self.input_stride
                 else:
-                    # otherwise, ignore the unfinished segment and seek to the last timestamp
                     last_timestamp_position = (
-                        tokens[last_slice - 1] - tokenizer.timestamp_begin
+                        tokens[last_slice] - tokenizer.timestamp_begin
                     )
-                    seek += last_timestamp_position * self.input_stride
 
             else:
                 duration = segment_duration
