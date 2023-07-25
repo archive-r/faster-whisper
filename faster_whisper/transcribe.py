@@ -508,6 +508,8 @@ class WhisperModel:
                     if seek_shift > 0:
                         seek = previous_seek + seek_shift
 
+            should_skip = False
+
             if options.no_speech_threshold is not None:
                 # no voice activity check
                 should_skip = result.no_speech_prob > options.no_speech_threshold
@@ -528,10 +530,8 @@ class WhisperModel:
 
                     # fast-forward to the next segment boundary
                     # seek += segment_size
-                    if not options.condition_on_previous_text or temperature > 0.5:
-                        prompt_reset_since = len(all_tokens)
-                    encoder_output = None
-                    continue
+                    # encoder_output = None
+                    # continue
 
             # low avg_logprob check
             if (
@@ -553,11 +553,7 @@ class WhisperModel:
                     f.write(info_message + "\n\n")
 
                 self.logger.info(info_message)
-
-                if not options.condition_on_previous_text or temperature > 0.5:
-                    prompt_reset_since = len(all_tokens)
-                encoder_output = None
-                continue
+                should_skip = True
 
             # high compression ratio check
             if (
@@ -579,13 +575,13 @@ class WhisperModel:
                     f.write(info_message + "\n\n")
 
                 self.logger.info(info_message)
-
-                if not options.condition_on_previous_text or temperature > 0.5:
-                    prompt_reset_since = len(all_tokens)
-                encoder_output = None
-                continue
+                should_skip = True
 
             encoder_output = None
+
+            if should_skip:
+                prompt_reset_since = len(all_tokens)
+                continue
 
             for segment in current_segments:
                 tokens = segment["tokens"]
