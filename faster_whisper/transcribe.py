@@ -482,7 +482,6 @@ class WhisperModel:
 
             previous_seek = seek
             current_segments = []
-            should_skip = False
 
             single_timestamp_ending = (
                 len(tokens) >= 2
