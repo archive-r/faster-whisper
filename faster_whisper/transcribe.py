@@ -552,6 +552,8 @@ class WhisperModel:
 
                 self.logger.info(info_message)
 
+                if not options.condition_on_previous_text or temperature > 0.5:
+                    prompt_reset_since = len(all_tokens)
                 encoder_output = None
                 continue
 
@@ -576,6 +578,8 @@ class WhisperModel:
 
                 self.logger.info(info_message)
 
+                if not options.condition_on_previous_text or temperature > 0.5:
+                    prompt_reset_since = len(all_tokens)
                 encoder_output = None
                 continue
 
