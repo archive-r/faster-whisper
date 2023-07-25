@@ -406,29 +406,6 @@ class WhisperModel:
 
             tokens = result.sequences_ids[0]
 
-            if options.no_speech_threshold is not None:
-                # no voice activity check
-                should_skip = result.no_speech_prob > options.no_speech_threshold
-
-                if (
-                    options.log_prob_threshold is not None
-                    and avg_logprob >= options.log_prob_threshold
-                ):
-                    # don't skip if the logprob is high enough, despite the no_speech_prob
-                    should_skip = False
-
-                if should_skip:
-                    self.logger.debug(
-                        "No speech threshold is met (%f > %f)",
-                        result.no_speech_prob,
-                        options.no_speech_threshold,
-                    )
-
-                    # fast-forward to the next segment boundary
-                    seek += segment_size
-                    encoder_output = None
-                    continue
-
             previous_seek = seek
             current_segments = []
 
@@ -530,6 +507,31 @@ class WhisperModel:
 
                     if seek_shift > 0:
                         seek = previous_seek + seek_shift
+
+            if options.no_speech_threshold is not None:
+                # no voice activity check
+                should_skip = result.no_speech_prob > options.no_speech_threshold
+
+                if (
+                    options.log_prob_threshold is not None
+                    and avg_logprob >= options.log_prob_threshold
+                ):
+                    # don't skip if the logprob is high enough, despite the no_speech_prob
+                    should_skip = False
+
+                if should_skip:
+                    self.logger.debug(
+                        "No speech threshold is met (%f > %f)",
+                        result.no_speech_prob,
+                        options.no_speech_threshold,
+                    )
+
+                    # fast-forward to the next segment boundary
+                    # seek += segment_size
+                    if not options.condition_on_previous_text or temperature > 0.5:
+                        prompt_reset_since = len(all_tokens)
+                    encoder_output = None
+                    continue
 
             # low avg_logprob check
             if (
