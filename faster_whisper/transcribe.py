@@ -809,6 +809,7 @@ class WhisperModel:
                     + "--------------------------------\n\n\n\n"
                 )
 
+        decode_result = highest_logprob_result
         return decode_result
 
     def get_prompt(
