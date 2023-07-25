@@ -759,6 +759,7 @@ class WhisperModel:
                             decode_result if rate == 1 else highest_logprob_result
                         )
                         openai_whisper_result = max(all_results, key=lambda x: x[2])
+                        decode_result = highest_logprob_result
                         break
 
                     rate += 0.2
@@ -809,7 +810,6 @@ class WhisperModel:
                     + "--------------------------------\n\n\n\n"
                 )
 
-        decode_result = highest_logprob_result
         return decode_result
 
     def get_prompt(
