@@ -735,31 +735,29 @@ class WhisperModel:
                 break
         else:
             # all failed, select the result with the highest average log probability
-            if (
-                options.log_prob_threshold is not None
-                and options.compression_ratio_threshold is not None
-            ):
-                log_prob_threshold = options.log_prob_threshold
+            if options.compression_ratio_threshold is not None:
                 compression_ratio_threshold = options.compression_ratio_threshold
                 rate = 1
 
                 while True:
-                    threshold_results = [
+                    below_cr_threshold_results = [
                         result
                         for result in all_results
-                        if result[1] >= log_prob_threshold * rate
-                        and result[3] <= compression_ratio_threshold * rate
+                        if result[3] <= compression_ratio_threshold * rate
                     ]
 
-                    if threshold_results:
-                        decode_result = max(threshold_results, key=lambda x: x[1])
-                        adaptive_result = decode_result
-                        highest_logprob_result = max(all_results, key=lambda x: x[1])
-                        below_cr_threshold_result = (
-                            decode_result if rate == 1 else highest_logprob_result
+                    if below_cr_threshold_results:
+                        decode_result = max(
+                            below_cr_threshold_results, key=lambda x: x[1]
                         )
+                        highest_logprob_result = max(all_results, key=lambda x: x[1])
+                        below_cr_threshold_results = (
+                            decode_result
+                            if rate == 1
+                            else max(all_results, key=lambda x: x[1])
+                        )
+                        adaptive_result = decode_result
                         openai_whisper_result = max(all_results, key=lambda x: x[2])
-                        decode_result = highest_logprob_result
                         break
 
                     rate += 0.2
