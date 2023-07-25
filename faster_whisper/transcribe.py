@@ -536,7 +536,7 @@ class WhisperModel:
             # low avg_logprob check
             if (
                 options.log_prob_threshold is not None
-                and avg_logprob < options.log_prob_threshold * 1.2
+                and avg_logprob < options.log_prob_threshold * 1.3
             ):
                 text = tokenizer.decode(tokens)
                 info_message = (
@@ -558,7 +558,7 @@ class WhisperModel:
             # high compression ratio check
             if (
                 options.compression_ratio_threshold is not None
-                and compression_ratio > options.compression_ratio_threshold * 1.2
+                and compression_ratio > options.compression_ratio_threshold * 1.3
             ):
                 text = tokenizer.decode(tokens)
                 info_message = (
