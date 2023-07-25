@@ -543,12 +543,9 @@ class WhisperModel:
                         )
                         seek += last_timestamp_position * self.input_stride
                 else:
-                    if single_timestamp_ending:
-                        seek += segment_size
-                    else:
-                        last_timestamp_position = (
-                            tokens[last_slice] - tokenizer.timestamp_begin
-                        )
+                    last_timestamp_position = (
+                        tokens[last_slice] - tokenizer.timestamp_begin
+                    )
 
             else:
                 duration = segment_duration
@@ -567,8 +564,13 @@ class WhisperModel:
                         tokens=tokens,
                     )
                 )
+                if not should_skip:
+                    seek += segment_size
+                else:
+                    seek += last_timestamp_position * self.input_stride
 
-                seek += segment_size
+            if should_skip:
+                continue
 
             if options.word_timestamps:
                 self.add_word_timestamps(
@@ -595,9 +597,6 @@ class WhisperModel:
                         seek = previous_seek + seek_shift
 
             encoder_output = None
-
-            if should_skip:
-                continue
 
             for segment in current_segments:
                 tokens = segment["tokens"]
