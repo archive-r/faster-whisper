@@ -426,8 +426,6 @@ class WhisperModel:
 
                     # fast-forward to the next segment boundary
                     # seek += segment_size
-                    if not options.condition_on_previous_text or temperature > 0.5:
-                        prompt_reset_since = len(all_tokens)
 
             # low avg_logprob check
             if (
