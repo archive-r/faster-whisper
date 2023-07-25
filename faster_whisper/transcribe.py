@@ -530,7 +530,7 @@ class WhisperModel:
                     )
                     last_slice = current_slice
 
-                    if should_skip:
+                    if should_skip and not skip_now:
                         skip_now = True
                         continue
                     # 문장 정밀하게 건너뛰기
