@@ -405,6 +405,8 @@ class WhisperModel:
             ) = self.generate_with_fallback(encoder_output, prompt, tokenizer, options)
 
             tokens = result.sequences_ids[0]
+            should_skip = False
+            skip_now = False
 
             if options.no_speech_threshold is not None:
                 # no voice activity check
@@ -528,8 +530,11 @@ class WhisperModel:
                     )
                     last_slice = current_slice
 
-                    # 문장 정밀하게 건너뛰기
                     if should_skip:
+                        skip_now = True
+                        continue
+                    # 문장 정밀하게 건너뛰기
+                    if skip_now:
                         break
 
                 if single_timestamp_ending:
