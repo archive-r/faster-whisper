@@ -866,6 +866,14 @@ class WhisperModel:
         word_durations = np.array([word["end"] - word["start"] for word in alignment])
         word_durations = word_durations[word_durations.nonzero()]
         median_duration = np.median(word_durations) if len(word_durations) > 0 else 0.0
+        print("median_duration", median_duration)
+        if median_duration > 0.75:
+            max_duration = 1.5
+            # 빨간색 글씨로 로그 출력
+            self.logger.info(
+                f"\033[91mMedian word duration is too high ({median_duration}s), "
+                "falling back to 1.5s\033[0m",
+            )
         max_duration = median_duration * 2
 
         # hack: truncate long words at sentence boundaries.
@@ -914,8 +922,12 @@ class WhisperModel:
             # hack: truncate long words at segment boundaries.
             # a better segmentation algorithm based on VAD should be able to replace this.
             if len(words) > 0:
+                # 이건 그러니까 첫번째 단어나 두번째 단어가 너무 길면 긴 앞부분을 잘라내는거임
                 # ensure the first and second word after a pause is not longer than
                 # twice the median word duration.
+                # 이전 문장과의 간격이 중앙지속시간의 4배(최대 6초) 이상이면서,
+                # 첫 단어가 최대지속시간 이상이거나,
+                # 또는 첫 단어 시작시간에서 두번째 단어 종료까지 길이가 최대지속시간의 2배(최대 3초) 이상이면
                 if words[0]["end"] - last_speech_timestamp > median_duration * 4 and (
                     words[0]["end"] - words[0]["start"] > max_duration
                     or (
@@ -923,36 +935,49 @@ class WhisperModel:
                         and words[1]["end"] - words[0]["start"] > max_duration * 2
                     )
                 ):
+                    # 두번째 단어 지속시간이 최대지속시간 이상이면
                     if (
                         len(words) > 1
                         and words[1]["end"] - words[1]["start"] > max_duration
                     ):
+                        # 두번째 단어의 종료시간에서 최대지속시간을 뺀 값 = boundary
                         boundary = max(
                             words[1]["end"] / 2, words[1]["end"] - max_duration
                         )
+                        # 첫번쨰 단어의 끝 & 두번째 단어의 시작 => 두번째 단어의 종료시간에서 최대지속시간을 뺀 값
+                        # (첫번째 단어 끝을 max_duration만큼 당기고, 두번째 단어의 시작도 거기에 맞춘다)
                         words[0]["end"] = words[1]["start"] = boundary
+                    # (무조건) 첫 단어 시작을 첫 단어 종료시간에서 최대지속시간을 뺸 값으로 고정
                     words[0]["start"] = max(0, words[0]["end"] - max_duration)
 
+                # 만약 문장 시작시간이 첫 단어 종료시간보다 빠르고, (정상임 이건)
+                # 문장 시작시간과 첫 단어 시작시간 사이 간격이 0.5초 이상이면
                 # prefer the segment-level start timestamp if the first word is too long.
                 if (
                     segment["start"] < words[0]["end"]
                     and segment["start"] - 0.5 > words[0]["start"]
                 ):
+                    # 첫 단어 시작시간 = 첫 단어 종료점에서 중앙지속시간을 뺀 값과 문장 시작시간 중 더 빠른 값
                     words[0]["start"] = max(
                         0, min(words[0]["end"] - median_duration, segment["start"])
                     )
                 else:
+                    # 아님 그냥 첫 단어 시작시간을 문장 시작시간으로 고정(첫 단어 시작시간이 더 정확하다고 가정)
                     segment["start"] = words[0]["start"]
 
+                # 문장 종료시간이 마지막 단어 시작시간보다 늦고, (정상임 이건)
+                # 문장 종료시간과 마지막 단어 종료시간 사이 간격이 0.5초 이상이면
                 # prefer the segment-level end timestamp if the last word is too long.
                 if (
                     segment["end"] > words[-1]["start"]
                     and segment["end"] + 0.5 < words[-1]["end"]
                 ):
+                    # 마지막 단어의 종료시간 = 문장 종료시간과 마지막 단어 시작시간에서 중앙지속시간을 더한 값 중 더 늦은 값
                     words[-1]["end"] = max(
                         words[-1]["start"] + median_duration, segment["end"]
                     )
                 else:
+                    # 아님 그냥 문장 종료시간을 마지막 단어 종료시간으로 고정(단어 종료시간이 더 정확하다고 가정)
                     segment["end"] = words[-1]["end"]
 
                 last_speech_timestamp = segment["end"]
