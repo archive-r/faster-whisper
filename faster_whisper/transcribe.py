@@ -868,7 +868,7 @@ class WhisperModel:
         median_duration = np.median(word_durations) if len(word_durations) > 0 else 0.0
         print("median_duration", median_duration)
         if median_duration > 0.75:
-            max_duration = 1.5
+            median_duration = 0.75
             # 빨간색 글씨로 로그 출력
             self.logger.info(
                 f"\033[91mMedian word duration is too high ({median_duration}s), "
