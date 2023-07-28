@@ -947,7 +947,7 @@ class WhisperModel:
                         # (첫번째 단어 끝을 max_duration만큼 당기고, 두번째 단어의 시작도 거기에 맞춘다)
                         # words[0]["end"] = words[1]["start"] = boundary
                         words[1]["start"] = boundary
-                    elif words[0]["end"] - words["start"] > max_duration:
+                    elif words[0]["end"] - words[0]["start"] > max_duration:
                         # 첫 단어 시작을 첫 단어 종료시간에서 최대지속시간을 뺸 값으로 고정
                         words[0]["start"] = max(0, words[0]["end"] - max_duration)
 
