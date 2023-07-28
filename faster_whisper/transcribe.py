@@ -954,32 +954,32 @@ class WhisperModel:
                 # 만약 문장 시작시간이 첫 단어 종료시간보다 빠르고, (정상임 이건)
                 # 문장 시작시간과 첫 단어 시작시간 사이 간격이 0.5초 이상이면
                 # prefer the segment-level start timestamp if the first word is too long.
-                if (
-                    segment["start"] < words[0]["end"]
-                    and segment["start"] - 0.5 > words[0]["start"]
-                ):
-                    # 첫 단어 시작시간 = 첫 단어 종료점에서 중앙지속시간을 뺀 값과 문장 시작시간 중 더 빠른 값
-                    words[0]["start"] = max(
-                        0, min(words[0]["end"] - median_duration, segment["start"])
-                    )
-                else:
-                    # 아님 그냥 첫 단어 시작시간을 문장 시작시간으로 고정(첫 단어 시작시간이 더 정확하다고 가정)
-                    segment["start"] = words[0]["start"]
+                # if (
+                #     segment["start"] < words[0]["end"]
+                #     and segment["start"] - 0.5 > words[0]["start"]
+                # ):
+                #     # 첫 단어 시작시간 = 첫 단어 종료점에서 중앙지속시간을 뺀 값과 문장 시작시간 중 더 빠른 값
+                #     words[0]["start"] = max(
+                #         0, min(words[0]["end"] - median_duration, segment["start"])
+                #     )
+                # else:
+                #     # 아님 그냥 첫 단어 시작시간을 문장 시작시간으로 고정(첫 단어 시작시간이 더 정확하다고 가정)
+                #     segment["start"] = words[0]["start"]
 
-                # 문장 종료시간이 마지막 단어 시작시간보다 늦고, (정상임 이건)
-                # 문장 종료시간과 마지막 단어 종료시간 사이 간격이 0.5초 이상이면
-                # prefer the segment-level end timestamp if the last word is too long.
-                if (
-                    segment["end"] > words[-1]["start"]
-                    and segment["end"] + 0.5 < words[-1]["end"]
-                ):
-                    # 마지막 단어의 종료시간 = 문장 종료시간과 마지막 단어 시작시간에서 중앙지속시간을 더한 값 중 더 늦은 값
-                    words[-1]["end"] = max(
-                        words[-1]["start"] + median_duration, segment["end"]
-                    )
-                else:
-                    # 아님 그냥 문장 종료시간을 마지막 단어 종료시간으로 고정(단어 종료시간이 더 정확하다고 가정)
-                    segment["end"] = words[-1]["end"]
+                # # 문장 종료시간이 마지막 단어 시작시간보다 늦고, (정상임 이건)
+                # # 문장 종료시간과 마지막 단어 종료시간 사이 간격이 0.5초 이상이면
+                # # prefer the segment-level end timestamp if the last word is too long.
+                # if (
+                #     segment["end"] > words[-1]["start"]
+                #     and segment["end"] + 0.5 < words[-1]["end"]
+                # ):
+                #     # 마지막 단어의 종료시간 = 문장 종료시간과 마지막 단어 시작시간에서 중앙지속시간을 더한 값 중 더 늦은 값
+                #     words[-1]["end"] = max(
+                #         words[-1]["start"] + median_duration, segment["end"]
+                #     )
+                # else:
+                #     # 아님 그냥 문장 종료시간을 마지막 단어 종료시간으로 고정(단어 종료시간이 더 정확하다고 가정)
+                #     segment["end"] = words[-1]["end"]
 
                 last_speech_timestamp = segment["end"]
 
