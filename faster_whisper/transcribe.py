@@ -925,8 +925,7 @@ class WhisperModel:
                 # 이건 그러니까 첫번째 단어나 두번째 단어가 너무 길면 긴 앞부분을 잘라내는거임
                 # ensure the first and second word after a pause is not longer than
                 # twice the median word duration.
-                # 이전 문장과의 간격이 중앙지속시간의 4배(최대 6초) 이상이면서,
-                # 첫 단어가 최대지속시간 이상이거나,
+                # 이전 문장과의 간격이 중앙지속시간의 4배(최대 6초) 이상이면서, 첫 단어가 최대지속시간 이상이거나,
                 # 또는 첫 단어 시작시간에서 두번째 단어 종료까지 길이가 최대지속시간의 2배(최대 3초) 이상이면
                 if words[0]["end"] - last_speech_timestamp > median_duration * 4 and (
                     words[0]["end"] - words[0]["start"] > max_duration
@@ -946,9 +945,11 @@ class WhisperModel:
                         )
                         # 첫번쨰 단어의 끝 & 두번째 단어의 시작 => 두번째 단어의 종료시간에서 최대지속시간을 뺀 값
                         # (첫번째 단어 끝을 max_duration만큼 당기고, 두번째 단어의 시작도 거기에 맞춘다)
-                        words[0]["end"] = words[1]["start"] = boundary
-                    # (무조건) 첫 단어 시작을 첫 단어 종료시간에서 최대지속시간을 뺸 값으로 고정
-                    words[0]["start"] = max(0, words[0]["end"] - max_duration)
+                        # words[0]["end"] = words[1]["start"] = boundary
+                        words[1]["start"] = boundary
+                    elif words[0]["end"] - words["start"] > max_duration:
+                        # 첫 단어 시작을 첫 단어 종료시간에서 최대지속시간을 뺸 값으로 고정
+                        words[0]["start"] = max(0, words[0]["end"] - max_duration)
 
                 # 만약 문장 시작시간이 첫 단어 종료시간보다 빠르고, (정상임 이건)
                 # 문장 시작시간과 첫 단어 시작시간 사이 간격이 0.5초 이상이면
