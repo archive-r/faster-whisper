@@ -938,7 +938,7 @@ class WhisperModel:
                     # utf-8 text 파일로 저장
                     with open("alignment.txt", "a", encoding="utf-8") as f:
                         f.write(
-                            f"{segment['text']}\n"
+                            f"{segment}\n"
                             f"First word is too long, "
                             f"{words[0]['start']:.2f} -> {aligned_start:.2f}"
                             "\n\n"
@@ -961,7 +961,7 @@ class WhisperModel:
                     # utf-8 text 파일로 저장
                     with open("alignment.txt", "a", encoding="utf-8") as f:
                         f.write(
-                            f"{segment['text']}\n"
+                            f"{segment}\n"
                             f"Second word is too long, "
                             f"{words[1]['start']:.2f} -> {aligned_start:.2f}"
                             "\n\n"
