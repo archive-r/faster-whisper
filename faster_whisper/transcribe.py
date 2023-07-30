@@ -921,21 +921,20 @@ class WhisperModel:
                 word_index += 1
 
             text = tokenizer.decode(segment["tokens"])
-            for i, word in enumerate(words):
+            for word in words:
                 if len(words) > 0:
                     # 단어가 최대지속시간 이상인 경우
                     if word["end"] - word["start"] > max_duration:
                         # 첫 단어 시작을 첫 단어 종료시간에서 최대지속시간을 뺸 값으로 고정
 
                         aligned_start = max(word["end"] / 2, word["end"] - max_duration)
-                        word_text = tokenizer.decode(segment["tokens"][i])
 
                         # utf-8 text 파일로 저장
                         with open("alignment.txt", "a", encoding="utf-8") as f:
                             f.write(
                                 f"Word is too long, "
                                 f"segment: {text}\n"
-                                f"word: {word_text}\n"
+                                f"word: {word['word']} prob: {word['probability']}\n"
                                 f"{word['start']:.2f} -> {aligned_start:.2f}"
                                 "\n\n"
                             )
