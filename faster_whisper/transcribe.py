@@ -934,7 +934,7 @@ class WhisperModel:
                             f.write(
                                 f"Word is too long\n"
                                 f"segment: {text}\n"
-                                f"word: {word['word']} prob: {word['probability']:.2f}\n"
+                                f"word: {word['word']} | prob: {word['probability']:.2f}\n"
                                 f"{word['start']:.2f} -> {aligned_start:.2f}"
                                 "\n\n"
                             )
