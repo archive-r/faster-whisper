@@ -871,10 +871,6 @@ class WhisperModel:
             f.write(f"median_duration: {median_duration}\n\n")
 
         if median_duration > 0.75 or len(word_durations) < 3:
-            # 빨간색 글씨로 로그 출력
-            self.logger.info(f"Set median duration: {median_duration:.2f} -> 0.75")
-
-            # utf-8 text 파일로 저장
             with open("alignment.txt", "a", encoding="utf-8") as f:
                 f.write(f"Set median duration: {median_duration:.2f} -> 0.75" "\n\n")
 
@@ -935,7 +931,6 @@ class WhisperModel:
                     # utf-8 text 파일로 저장
                     with open("alignment.txt", "a", encoding="utf-8") as f:
                         f.write(
-                            f"{segment}\n"
                             f"First word is too long, "
                             f"{text}\n"
                             f"{words[0]['start']:.2f} -> {aligned_start:.2f}"
