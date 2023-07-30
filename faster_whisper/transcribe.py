@@ -932,7 +932,7 @@ class WhisperModel:
                         # utf-8 text 파일로 저장
                         with open("alignment.txt", "a", encoding="utf-8") as f:
                             f.write(
-                                f"Word is too long, "
+                                f"Word is too long\n"
                                 f"segment: {text}\n"
                                 f"word: {word['word']} prob: {word['probability']:.2f}\n"
                                 f"{word['start']:.2f} -> {aligned_start:.2f}"
