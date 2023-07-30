@@ -867,13 +867,15 @@ class WhisperModel:
         word_durations = word_durations[word_durations.nonzero()]
         median_duration = np.median(word_durations) if len(word_durations) > 0 else 0.0
         print("median_duration", median_duration)
-        if median_duration > 0.75:
-            median_duration = 0.75
+        if median_duration > 0.75 or len(word_durations) < 3:
             # 빨간색 글씨로 로그 출력
-            self.logger.info(
-                f"\033[91mMedian word duration is too high ({median_duration}s), "
-                "falling back to 1.5s\033[0m",
-            )
+            self.logger.info(f"Set median duration: {median_duration:.2f} -> 0.75")
+
+            # utf-8 text 파일로 저장
+            with open("alignment.txt", "a", encoding="utf-8") as f:
+                f.write(f"Set median duration: {median_duration:.2f} -> 0.75" "\n\n")
+
+            median_duration = 0.75
         max_duration = median_duration * 2
 
         # hack: truncate long words at sentence boundaries.
@@ -923,17 +925,50 @@ class WhisperModel:
                 # 첫 단어가 최대지속시간 이상인 경우
                 if words[0]["end"] - words[0]["start"] > max_duration:
                     # 첫 단어 시작을 첫 단어 종료시간에서 최대지속시간을 뺸 값으로 고정
-                    words[0]["start"] = max(0, words[0]["end"] - max_duration)
+
+                    aligned_start = max(0, words[0]["end"] - max_duration)
+
+                    self.logger.info(
+                        f"First word is too long, "
+                        f"{words[0]['start']:.2f} -> {aligned_start:.2f}"
+                    )
+
+                    words[0]["start"] = aligned_start
+
+                    # utf-8 text 파일로 저장
+                    with open("alignment.txt", "a", encoding="utf-8") as f:
+                        f.write(
+                            f"{segment['text']}\n"
+                            f"First word is too long, "
+                            f"{words[0]['start']:.2f} -> {aligned_start:.2f}"
+                            "\n\n"
+                        )
 
                 # 두번째 단어가 최대지속시간 이상인 경우
                 if (
                     len(words) > 1
                     and words[1]["end"] - words[1]["start"] > max_duration
                 ):
-                    # 두번째 단어의 시작점 설정
-                    words[1]["start"] = max(
+                    aligned_start = max(
                         words[1]["end"] / 2, words[1]["end"] - max_duration
                     )
+
+                    self.logger.info(
+                        f"Second word is too long, "
+                        f"{words[1]['start']:.2f} -> {aligned_start:.2f}"
+                    )
+
+                    # utf-8 text 파일로 저장
+                    with open("alignment.txt", "a", encoding="utf-8") as f:
+                        f.write(
+                            f"{segment['text']}\n"
+                            f"Second word is too long, "
+                            f"{words[1]['start']:.2f} -> {aligned_start:.2f}"
+                            "\n\n"
+                        )
+
+                    # 두번째 단어의 시작점 설정
+                    words[1]["start"] = aligned_start
 
                 segment["start"] = words[0]["start"]
                 segment["end"] = words[-1]["end"]
