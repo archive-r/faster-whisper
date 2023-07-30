@@ -868,7 +868,7 @@ class WhisperModel:
         median_duration = np.median(word_durations) if len(word_durations) > 0 else 0.0
 
         with open("alignment.txt", "a", encoding="utf-8") as f:
-            f.write(f"median_duration: {median_duration}\n\n")
+            f.write(f"median_duration: {median_duration:.2f}\n\n")
 
         if median_duration > 0.75 or len(word_durations) < 3:
             with open("alignment.txt", "a", encoding="utf-8") as f:
@@ -920,50 +920,30 @@ class WhisperModel:
                 saved_tokens += len(timing["tokens"])
                 word_index += 1
 
-            if len(words) > 0:
-                # 첫 단어가 최대지속시간 이상인 경우
-                if words[0]["end"] - words[0]["start"] > max_duration:
-                    # 첫 단어 시작을 첫 단어 종료시간에서 최대지속시간을 뺸 값으로 고정
+            text = tokenizer.decode(segment["tokens"])
+            for i, word in enumerate(words):
+                if len(words) > 0:
+                    # 단어가 최대지속시간 이상인 경우
+                    if word["end"] - word["start"] > max_duration:
+                        # 첫 단어 시작을 첫 단어 종료시간에서 최대지속시간을 뺸 값으로 고정
 
-                    aligned_start = max(0, words[0]["end"] - max_duration)
-                    text = tokenizer.decode(segment["tokens"])
+                        aligned_start = max(word["end"] / 2, word["end"] - max_duration)
+                        word_text = tokenizer.decode(segment["tokens"][i])
 
-                    # utf-8 text 파일로 저장
-                    with open("alignment.txt", "a", encoding="utf-8") as f:
-                        f.write(
-                            f"First word is too long, "
-                            f"{text}\n"
-                            f"{words[0]['start']:.2f} -> {aligned_start:.2f}"
-                            "\n\n"
-                        )
+                        # utf-8 text 파일로 저장
+                        with open("alignment.txt", "a", encoding="utf-8") as f:
+                            f.write(
+                                f"Word is too long, "
+                                f"segment: {text}\n"
+                                f"word: {word_text}\n"
+                                f"{word['start']:.2f} -> {aligned_start:.2f}"
+                                "\n\n"
+                            )
 
-                    words[0]["start"] = aligned_start
+                        word["start"] = aligned_start
 
-                # 두번째 단어가 최대지속시간 이상인 경우
-                if (
-                    len(words) > 1
-                    and words[1]["end"] - words[1]["start"] > max_duration
-                ):
-                    aligned_start = max(
-                        words[1]["end"] / 2, words[1]["end"] - max_duration
-                    )
-                    text = tokenizer.decode(segment["tokens"])
-
-                    # utf-8 text 파일로 저장
-                    with open("alignment.txt", "a", encoding="utf-8") as f:
-                        f.write(
-                            f"Second word is too long, "
-                            f"{text}\n"
-                            f"{words[1]['start']:.2f} -> {aligned_start:.2f}"
-                            "\n\n"
-                        )
-
-                    # 두번째 단어의 시작점 설정
-                    words[1]["start"] = aligned_start
-
-                segment["start"] = words[0]["start"]
-                segment["end"] = words[-1]["end"]
-
+            segment["start"] = words[0]["start"]
+            segment["end"] = words[-1]["end"]
             segment["words"] = words
 
     def find_alignment(
