@@ -404,29 +404,6 @@ class WhisperModel:
                 compression_ratio,
             ) = self.generate_with_fallback(encoder_output, prompt, tokenizer, options)
 
-            if options.no_speech_threshold is not None:
-                # no voice activity check
-                should_skip = result.no_speech_prob > options.no_speech_threshold
-
-                if (
-                    options.log_prob_threshold is not None
-                    and avg_logprob > options.log_prob_threshold
-                ):
-                    # don't skip if the logprob is high enough, despite the no_speech_prob
-                    should_skip = False
-
-                if should_skip:
-                    self.logger.debug(
-                        "No speech threshold is met (%f > %f)",
-                        result.no_speech_prob,
-                        options.no_speech_threshold,
-                    )
-
-                    # fast-forward to the next segment boundary
-                    seek += segment_size
-                    encoder_output = None
-                    continue
-
             tokens = result.sequences_ids[0]
 
             previous_seek = seek
@@ -531,7 +508,75 @@ class WhisperModel:
                     if seek_shift > 0:
                         seek = previous_seek + seek_shift
 
+            should_skip = False
+
+            if options.no_speech_threshold is not None:
+                # no voice activity check
+                should_skip = result.no_speech_prob > options.no_speech_threshold
+
+                if (
+                    options.log_prob_threshold is not None
+                    and avg_logprob >= options.log_prob_threshold
+                ):
+                    # don't skip if the logprob is high enough, despite the no_speech_prob
+                    should_skip = False
+
+                if should_skip:
+                    self.logger.debug(
+                        "No speech threshold is met (%f > %f)",
+                        result.no_speech_prob,
+                        options.no_speech_threshold,
+                    )
+
+            # low avg_logprob check
+            if (
+                options.log_prob_threshold is not None
+                and avg_logprob < options.log_prob_threshold * 1.3
+            ):
+                text = tokenizer.decode(tokens)
+                info_message = (
+                    "\033[94mAverage log probability is too low\n\033[0m"
+                    f"{text}\n"
+                    f"alp: {avg_logprob:.2f} "
+                    f"nsp: {result.no_speech_prob:.2f} "
+                    f"t: {temperature} "
+                    f"cr: {compression_ratio:.2f}"
+                )
+
+                # utf-8 text 파일로 저장
+                with open("low_avg_logprob.txt", "a", encoding="utf-8") as f:
+                    f.write(info_message + "\n\n")
+
+                self.logger.info(info_message)
+                should_skip = True
+
+            # high compression ratio check
+            if (
+                options.compression_ratio_threshold is not None
+                and compression_ratio > options.compression_ratio_threshold * 1.3
+            ):
+                text = tokenizer.decode(tokens)
+                info_message = (
+                    "\033[93mCompression ratio is too high\n\033[0m"
+                    f"{text}\n"
+                    f"alp: {avg_logprob:.2f} "
+                    f"nsp: {result.no_speech_prob:.2f} "
+                    f"t: {temperature} "
+                    f"cr: {compression_ratio:.2f}"
+                )
+
+                # utf-8 text 파일로 저장
+                with open("high_compression_ratio.txt", "a", encoding="utf-8") as f:
+                    f.write(info_message + "\n\n")
+
+                self.logger.info(info_message)
+                should_skip = True
+
             encoder_output = None
+
+            if should_skip:
+                prompt_reset_since = len(all_tokens)
+                continue
 
             for segment in current_segments:
                 tokens = segment["tokens"]
