@@ -4,6 +4,7 @@ import os
 import zlib
 
 from typing import BinaryIO, Iterable, List, NamedTuple, Optional, Tuple, Union
+from collections import deque
 
 import ctranslate2
 import numpy as np
@@ -361,6 +362,7 @@ class WhisperModel:
         seek = 0
         all_tokens = []
         prompt_reset_since = 0
+        prompt_text_deque = deque(maxlen=3)
 
         if options.initial_prompt is not None:
             if isinstance(options.initial_prompt, str):
@@ -538,7 +540,20 @@ class WhisperModel:
                 if segment["start"] == segment["end"] or not text.strip():
                     continue
 
-                all_tokens.extend(tokens)
+                if not prompt_text_deque or text.strip() != prompt_text_deque[-1]:
+                    all_tokens.extend(tokens)
+
+                elif len(prompt_text_deque) == 3 and all(
+                    [text.strip() == i for i in prompt_text_deque]
+                ):
+                    self.logger.info(
+                        "\033[91mDuplicate text detected\n\033[0m"
+                        f"{text}\n"
+                        f"alp: {avg_logprob:.2f} nsp: {result.no_speech_prob:.2f} t: {temperature} cr: {compression_ratio:.2f}"
+                    )
+                    continue
+
+                prompt_text_deque.append(text.strip())
                 idx += 1
 
                 yield Segment(
